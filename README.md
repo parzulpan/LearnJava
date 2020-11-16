@@ -2,7 +2,7 @@
 
 Java 入门和进阶学习。
 
-在线浏览 https://learnjava.parzulpan.cn
+在线浏览：https://learnjava.parzulpan.cn
 
 学习资料链接: https://pan.baidu.com/s/1OkQNQZWgG_Saa4Zw5osqAQ  密码: 5g9u
 
@@ -47,10 +47,10 @@ Java 入门和进阶学习。
   * Hibernate
   * Spring5
   * SSH 整合&案例
-  * SpringMVC
+  * Spring MVC
   * JPA
   * Spring 注解
-  * SpringData
+  * Spring Data
   * SSSP 整合&分页
   * Shrio
   * 通用 Mapper
@@ -62,8 +62,8 @@ Java 入门和进阶学习。
   * Maven
   * Git&Github
 * Java 高级
-  * SpringBoot
-  * SpringCloud
+  * Spring Boot
+  * Spring Cloud
   * Jenkins
   * Docker
   * Kubernetes
@@ -77,7 +77,7 @@ Java 入门和进阶学习。
   * Mycat
   * ShardingSphere
   * 密码学
-  * SpringSecurity
+  * Spring Security
 * 项目实战
   * 众筹网站
   * 学院网站

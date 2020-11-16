@@ -7,7 +7,7 @@
 * Java 基本语法
   * [变量与运算符](note/ch02/README.md)
   * [流程流程控制](note/ch02/README01.md)
-  * [项目小结](note/ch02/README02.md)
+  * [小项目：家庭收支记账软件](note/ch02/README02.md)
 * 数组
 * 面向对象
 * 异常处理
