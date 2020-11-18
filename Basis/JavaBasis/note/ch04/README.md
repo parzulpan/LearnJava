@@ -291,7 +291,7 @@ class Varargs {
 **Java 里的方法的参数传递方式只有一种，即值传递**。将实际参数值的副本（复制品）传入方法内，而参数本身不受影响。
 
 * 形参是**基本数据类型**：将实参基本数据类型变量的“**数据值**”传递给形参；
-* 形参是**引用数据类型**：将实参引用数据类型变量的“**地址值**”传递给形参。
+* 形参是**引用数据类型**：将实参引用数据类型变量的“**地址值（含变量的数据类型）**”传递给形参。
 
 ## 递归方法
 
@@ -501,5 +501,86 @@ char[] arr1 = new char[10];
 System.out.println(arr1); //地址值? 不是，调用的 println(char[])
 
 ```
+
+---
+
+**写出输出结果？**
+
+```java
+class Demo{
+    public static void main(String[] args){
+        show(0);
+        show(1);
+    }
+    public static void show(int i){
+        switch(i){
+            default:
+                i+=2;
+            case 1:
+                i+=1;
+            case 4:
+                i+=8;
+            case 2:
+                i+=4;
+        }
+        System.out.println("i=" + i);
+    }
+}
+```
+
+输出：
+
+i = 15
+
+i = 14
+
+show(0) 从 default 开始，show(1) 从 case 1 开始。
+
+---
+
+**写出输出结果？**
+
+```java
+class Demo {
+    public static void main(String[] args) {
+        int x = 1;
+        for (show('a'); show('b') && x < 3; show('c')) {
+            show('d');
+            x++;
+        }
+    }
+
+    public static boolean show(char ch) {
+        System.out.print(ch);
+        return true;
+    }
+}
+```
+
+输出：
+
+abdcbdcb
+
+---
+
+**说说 Java 的内存管理之垃圾回收？**
+
+由 JVM 自动为其分配相应的内存空间，并由 JVM 提供垃圾回收机制自动释放内存空间。
+
+将垃圾对象（不再被任何引用指向的对象）所占用的堆空间进行回收，Java 的垃圾回收机制是 JVM 提供的能力，由单独的系统垃圾回收线程在空闲时间以不定时的方式动态回收。
+
+**在程序中是否可以通知垃圾回收机制过来回收垃圾？**
+
+可以，通过 `System.gc();` 或者 `Runtime.getRuntime().gc();`
+
+**调用后是否立即执行垃圾回收？**
+
+不会，该调用并不会立刻启动垃圾回收机制，但会加快垃圾回收机制的运行。
+
+---
+
+**构造器是否可被 override ？**
+
+构造器不能被继承，因此不能重写，但是可以被重载。
 
 ---
