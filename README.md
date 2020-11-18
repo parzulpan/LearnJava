@@ -96,6 +96,8 @@ Java 入门和进阶学习。
 
 ### 书籍
 
+* [数据结构与算法分析 Java 语言描述](https://book.douban.com/subject/3351237/)
+
 ## 协议
 
 本项目遵循 GNU General Public License v3.0，如果要修改源码进行二次开发需要遵守以下协议：
