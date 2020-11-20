@@ -3,7 +3,7 @@ package com.parzulpan.java.ch02;
 /**
  * @author : parzulpan
  * @time : 2020-11-16
- * @attention :
+ * @attention : Java 基础项目一：家庭收支记账软件
  */
 
 public class FamilyAccount {
