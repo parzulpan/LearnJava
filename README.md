@@ -4,8 +4,6 @@ Java 入门和进阶学习。
 
 在线浏览：https://learnjava.parzulpan.cn
 
-学习资料链接: https://pan.baidu.com/s/1OkQNQZWgG_Saa4Zw5osqAQ  密码: 5g9u
-
 ## 目录
 
 * Java 基础
@@ -95,13 +93,13 @@ Java 入门和进阶学习。
 * [Java 学习路线](http://www.atguigu.com/download.shtml#java)
 * [技术面试必备基础知识](https://github.com/CyC2018/CS-Notes)
 * [可能是一份最适合你的后端面试指南](https://juejin.im/post/6844903683658874893)
-* [Java工程师面试宝典-牛客网](https://www.nowcoder.com/tutorial/94/ea1986fcff294f6292385703e94689e8)
-* [Java学习+面试指南](https://github.com/Snailclimb/JavaGuide)
-* [Java工程师面试复习指南](https://github.com/h2pl/Java-Tutorial)
-* [Java面试+Java学习指南](https://github.com/AobingJava/JavaFamily)
+* [Java 工程师面试宝典-牛客网](https://www.nowcoder.com/tutorial/94/ea1986fcff294f6292385703e94689e8)
+* [Java 学习 + 面试指南](https://github.com/Snailclimb/JavaGuide)
+* [Java 工程师面试复习指南](https://github.com/h2pl/Java-Tutorial)
+* [Java 面试 + Java 学习指南](https://github.com/AobingJava/JavaFamily)
 * [互联网面试笔记](https://github.com/zhengjianglong915/note-of-interview)
 * [互联网公司经典技术架构](https://github.com/davideuler/architecture.of.internet-product)
-* [大厂 Top K 面试题](https://osjobs.net/topk/)
+* [大厂 TopK 面试题](https://osjobs.net/topk/)
 * [技术面试最后反问面试官的话](https://github.com/yifeikong/reverse-interview-zh)
 
 ### 书籍

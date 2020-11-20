@@ -30,7 +30,7 @@ public class CustomerList {
             return false;
         }
 
-        customers[customerTotal] = customer;
+        customers[index] = customer;
 
         return true;
     }
@@ -40,9 +40,11 @@ public class CustomerList {
             return false;
         }
 
-        for (int i = index; i < customerTotal - 1; ++i) {
-            customers[i] = customers[i + 1];
-        }
+//        for (int i = index; i < customerTotal - 1; ++i) {
+//            customers[i] = customers[i + 1];
+//        }
+        if (customerTotal - 1 - index >= 0)
+            System.arraycopy(customers, index + 1, customers, index, customerTotal - 1 - index);
 
         customers[--customerTotal] = null;
 
@@ -51,9 +53,11 @@ public class CustomerList {
 
     public Customer[] getCustomers() {
         Customer[] custs = new Customer[customerTotal];
-        for (int i = 0; i < customerTotal; ++i) {
-            custs[i] = customers[i];
-        }
+//        for (int i = 0; i < customerTotal; ++i) {
+//            custs[i] = customers[i];
+//        }
+        System.arraycopy(customers, 0, custs, 0, customerTotal);
+
         return custs;
     }
 
