@@ -17,6 +17,7 @@
   * [面向对象中](note/ch04/README01.md)
   * [面向对象下](note/ch04/README02.md)
 * 异常处理
+  * [异常处理](note/ch05/README.md)
 * 多线程
 * 常用类
 * 枚举类
