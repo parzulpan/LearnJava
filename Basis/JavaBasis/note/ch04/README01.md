@@ -481,7 +481,7 @@ class DBDriver {
 
 ## Object
 
-* Object 类是所有 Java 类的根父类；
+* Object 类是所有 Java 类的根父类，Object 只声明了一个空参的构造器；
 * 如果在类的声明中未使用 extends 关键字指明其父类，则默认父类为 java.lang.Object 类；
   
   ```java
@@ -501,6 +501,10 @@ class DBDriver {
   ```
 
 Object 类的主要方法：
+
+equals
+
+## 包装类
 
 
 
