@@ -131,7 +131,7 @@ class StudentA {
 
 ## UML 类图
 
-![UML类图](../../resources/UML类图.png)
+![UML类图](../../img/UML类图.png)
 
 * `+` 表示 public 类型，`-` 表示 private 类型， `#` 表示 protected 类型;
 * 方法的写法：方法的类型（`+`、`-` ）方法名（参数名：参数类型）: 返回值类型。
@@ -214,7 +214,7 @@ MVC是常用的设计模式之一，将整个程序分为三个层次：**视图
 
 根据 UML 类图 实现功能：
 
-![UML类图继承练习](../../resources/UML类图继承练习.png)
+![UML类图继承练习](../../img/UML类图继承练习.png)
 
 [Circle](../../code/src/com/parzulpan/java/ch04/Circle.java)
 
@@ -477,7 +477,7 @@ class DBDriver {
 * **无继承关系的引用类型间的转换是非法的**；
 * 在造型前可以使用 instanceof 操作符测试一个对象的类型。
 
-![对象类型转换](../../resources/对象类型转换.png)
+![对象类型转换](../../img/对象类型转换.png)
 
 ## Object
 

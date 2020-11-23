@@ -1,4 +1,4 @@
-package com.parzulpan.java.ch04;
+package com.parzulpan.java;
 
 /**
  * @Author : parzulpan

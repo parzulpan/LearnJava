@@ -14,8 +14,7 @@ Java 入门和进阶学习。
   * JUC
   * NIO
   * Linux
-  * IDEA
-  * Maven&Git 配置
+  * IDEA&Maven&Git
   * Java8
   * Java9
   * Java11

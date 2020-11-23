@@ -19,6 +19,7 @@
 * 异常处理
   * [异常处理](note/ch05/README.md)
 * 多线程
+  * [多线程](note/ch06/README.md)
 * 常用类
 * 枚举类
 * 集合
