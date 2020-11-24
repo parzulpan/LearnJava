@@ -103,7 +103,7 @@ Java 入门和进阶学习。
 
 ### 书籍
 
-* [数据结构与算法分析 Java 语言描述](https://book.douban.com/subject/3351237/)
+* [《数据结构与算法分析 Java 语言描述》](https://book.douban.com/subject/3351237/)
 
 ## 协议
 
