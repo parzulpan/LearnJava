@@ -18,11 +18,13 @@
   * [面向对象下](note/ch04/README02.md)
 * 异常处理
   * [异常处理](note/ch05/README.md)
+  * [小项目：开发团队人员调度软件](note/ch05/Project.md)
 * 多线程
   * [多线程](note/ch06/README.md)
 * 常用类
   * [常用类](note/ch07/README.md) 
-* 枚举类
+* 枚举类与注解
+  * [枚举类与注解](note/ch08/README.md)
 * 集合
 * 泛型与 File
 * IO 流
