@@ -26,6 +26,7 @@
 * 枚举类与注解
   * [枚举类与注解](note/ch08/README.md)
 * 集合
+  * [集合](note/ch09/README.md)
 * 泛型与 File
 * IO 流
 * 网络编程
