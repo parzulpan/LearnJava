@@ -26,13 +26,13 @@ Array 在存储方面的缺点：
   * **Set 接口**：存储无序的、不可重复的对象
     * **HashSet**：作为 Set 接口的主要实现类；线程不安全的，效率高；
     * **LinkedHashSet**：作为 HashSet 的子类，遍历其内部数据时，可以按照添加的顺序遍历；
-    * **TreeSet**：可以按照添加对象的指定属性进行排序；
+    * **TreeSet**：底层使用红黑树存储，可以按照添加对象的指定属性进行排序；
 * **Map 接口**：双列集合，用来存储一对一对的对象
-  * **HashMap**：
-  * **LinkedHashMap**：
-  * **TreeMap**：
-  * **Hashtable**：
-  * **Properties**：
+  * **HashMap**：作为 Map 接口的主要实现类；线程不安全的，效率高；可以存储 `null` 的 key 和 value；底层使用 数组+链表+红黑树（JDK8，JDK7无红黑树）存储；
+  * **LinkedHashMap**：作为 HashMap 的子类，遍历其内部数据时，可以按照添加的顺序遍历；
+  * **TreeMap**：底层使用红黑树存储，可以按照添加对象的指定属性进行排序；
+  * **Hashtable**：作为 Map 接口的古老实现类；线程安全的，效率低；不可以存储 `null` 的 key 和 value；
+  * **Properties**：常用来处理配置文件，key 和 value 都是 String 类型；
 
 ## Collection 接口
 
@@ -171,7 +171,6 @@ for (Object obj: collection) {
             this.prev = prev;
         }
   }
-
   ```
 
 #### Vector 类
@@ -303,7 +302,7 @@ class Person {
 }
 ```
 
-##### LinkedHashSet 类
+#### LinkedHashSet 类
 
 LinkedHashSet 是 HashSet 的子类。
 
@@ -325,17 +324,296 @@ TreeSet 两种排序方法，即自然排序和定制排序。默认情况下，
 
 ## Map 接口
 
+Map 中的 key **用 Set 来存放**，不允许重复，即同一个 Map 对象所对应
+的类，**必须重写 `hashCode()` 和 `equals()` 方法**。
+
+* Map 的 key：无序的、不可重复的，使用 Set 存储所有的 key。**所以 key 所在的类要重写 `hashCode()` 和 `equals()`**
+* Map 的 value：无序的、可重复的，使用 Collection 存储所有的 value。**所以 value 所在的类要重写 `equals()`**
+* Map 的 entry：无序的、不可重复的，使用 Set 存储所有的 entry（key-value对 构成）。
+
+常用方法：
+
+* 添加、删除、修改操作：
+  * `Object put(Object key,Object value)` 将指定 key-value 添加到（或修改）当前 map 对象中；
+  * `void putAll(Map m)` 将 m 中的所有 key-value 对存放到当前 map 中；
+  * `Object remove(Object key)` 移除指定 key 的 key-value 对，并返回 value；
+  * `void clear()` 清空当前 map 中的所有数据。
+* 元素查询的操作：
+  * `Object get(Object key)` 获取指定 key 对应的 value
+  * `boolean containsKey(Object key)` 是否包含指定的 key
+  * `boolean containsValue(Object value)` 是否包含指定的 value
+  * `int size()` 返回 map 中 key-value 对的个数
+  * `boolean isEmpty()` 判断当前 map 是否为空
+  * `boolean equals(Object obj)` 判断当前 map 和参数对象 obj 是否相等
+* 元视图操作的方法：
+  * `Set keySet()` 返回所有 key 构成的 Set 集合
+  * `Collection values()` 返回所有 value 构成的 Collection 集合
+  * `Set entrySet()` 返回所有 key-value 对构成的 Set 集合
+
+```java
+// map 的遍历
+@Test
+public void test3() {
+    Map map = new HashMap();
+    map.put(123, "AA");
+    map.put(345, "OO");
+    map.put("AAA", 1234);
+    map.put(345, "WW");
+
+    // 遍历所有的 key
+    Set set = map.keySet();
+    Iterator iterator = set.iterator();
+    while (iterator.hasNext()) {
+        System.out.println(iterator.next());
+    }
+
+    // 遍历所有的 value
+    Collection values = map.values();
+    for (Object obj: values) {
+        System.out.println(obj);
+    }
+
+    // 遍历所有的 key-val
+    Set set1 = map.entrySet();
+    Iterator iterator1 = set1.iterator();
+    while (iterator1.hasNext()) {
+        Object next = iterator1.next();
+        Map.Entry next1 = (Map.Entry) next;
+        System.out.println(next1.getKey() + " -> " + next1.getValue());
+    }
+
+    // 遍历所有的 key-val
+    Set set2 = map.keySet();
+    Iterator iterator2 = set2.iterator();
+    while (iterator2.hasNext()) {
+        Object key = iterator2.next();
+        Object value = map.get(key);
+        System.out.println(key + " -> " + value);
+    }
+}
+
+```
+
 ### HashMap 类
 
-#### LinkedHashMap 类
+HashMap 是 Map 接口的主要实现类。允许使用 null 键和 null 值，与HashSet  一样，不保证映射的顺序。
+
+HashMap 判断两个 key 相等的标准是：两个 key 通过 equals() 方法返回 true，hashCode 值也相等。
+
+HashMap 判断两个 value 相等的标准是：两个 value 通过 equals() 方法返回 true。
+
+***HashMap 底层实现原理**：
+
+* 对于 Java7:
+  * `HashMap map = new HashMap();` 在实例化后，底层创建了一个长度为 16 的一维数组 `Entry[] table`。执行 `map.put(kay1, value1);` 时，首先调用 key1 所在类的 hasCode() 计算其哈希值，然后得到其在 Entry 数组中的存放位置：
+    * 如果此位置上的数据为空，则 key1-value1 添加成功；（**情况1**）
+    * 如果此位置上的数据不为空，意味着此位置上存在一个或多个数据（以链表形式），比较 key1 与它们的哈希值：
+      * 如果 key1 和它们的哈希值都不相同，则  key1-value1 添加成功；（**情况2**）
+      * 如果 key1 和某一个数据（key2-value2）的哈希值相同，则调用 equals()：
+        * 如果 equals() 返回 false，则  key1-value1 添加成功；（**情况3**）
+        * 如果 equals() 返回 true，则使用 value1 替换 value2；
+  * 对于情况 2 和情况 3，此时的 key1-value1 和原来的数据以链表的方式存储。
+  * 在不断的添加中，当超出临界值且原有位置不为空时，会涉及扩容问题，默认的扩容方式是扩容到原来容量的 2 倍，并将原来的数据复制过来。
+* 对于 Java8：
+  * 相比较于 Java7，实例化后底层没有创建一个长度为 16 的数组，首次 `put()` 后才创建长度为 16 的数组。且一维数组不是 `Entry[]` 而是 `Node[]`。而且，底层结构还增加了 红黑树，当数组中某一个索引位置上的元素 **以链表形式存的数据个数 > 8** 且 **当前数组的长度 > 64 时**，此时此索引位置上的所有数据改为红黑树存储。
+
+***HashMap 源码分析**：
+
+* Java7：
+  
+  ```java
+  // Java7 HashMap
+
+  ```
+
+* Java8：
+
+  ```java
+  // Java8 HashMap
+
+  ```
+
+源码中的重要常量：
+
+* `DEFAULT_INITIAL_CAPACITY` : HashMap 的默认容量，16
+* `DEFAULT_LOAD_FACTOR`：HashMap 的默认加载因子，0.75
+* `TREEIFY_THRESHOLD`：Bucket 中链表长度大于该默认值，转化为红黑树，8
+* `MIN_TREEIFY_CAPACITY`：桶中的 Node 被树化时最小的 hash 表容量，64
+* `threshold`：扩容的临界值，结果为容量 * 填充因子，12
+
+### LinkedHashMap 类
+
+LinkedHashMap 是 HashMap 的子类，它在 HashMap 存储结构的基础上，使用了一对**双向链表**来记录添加元素的顺序，与 LinkedHashSet 类似，LinkedHashMap 可以维护 Map 的迭代顺序，迭代顺序与 Key-Value 对的插入顺序一致。
+
+```java
+package parzulpan.com.java;
+
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+/**
+ * @Author : parzulpan
+ * @Time : 2020-11-26
+ * @Desc :
+ */
+
+public class MapTest {
+
+    @Test
+    public void test1() {
+        Map map = new HashMap();
+        map.put(123, "AA");
+        map.put(345, "OO");
+        map.put("AAA", 1234);
+        map.put(345, "WW");
+
+        System.out.println(map);    // {AAA=1234, 345=WW, 123=AA}
+    }
+
+    @Test
+    public void test2() {
+        Map map = new LinkedHashMap();
+        map.put(123, "AA");
+        map.put(345, "OO");
+        map.put("AAA", 1234);
+        map.put(345, "WW");
+
+        System.out.println(map);    // {123=AA, 345=WW, AAA=1234}
+    }
+}
+```
 
 ### TreeMap 类
 
+TreeMap 存储 key-value 对时，需要根据 key-value 对进行排序。
+TreeMap 可以保证所有的 key-value 对处于**有序**状态。TreeSet 底层使用红黑树结构存储数据。
+
+TreeMap 的 Key 的排序：
+
+* **自然排序**：TreeMap 的所有的 key 必须实现 Comparable 接口，而且所有的 key 应该是**同一个类的对象**，否则将会抛出 ClasssCastException；
+* **定制排序**：创建 TreeMap 时，传入一个 Comparator 对象，该对象负责对 TreeMap 中的所有 key 进行排序。此时不需要 Map 的 key 实现
+Comparable 接口；
+* 排序写法同 **TreeSet** 类似。
+
+TreeMap 判断两个 key 相等的标准：两个 key 通过 compareTo() 方法或
+者 compare() 方法返回 0。
+
 ### Hashtable 类
 
-#### Properties 类
+Hashtable 实现原理和 HashMap 相同，功能相同。底层都使用哈希表结构，查询速度快，很多情况下可以互用。
+
+与 HashMap 不同，Hashtable 不允许使用 null 作为 key 和 value。
+
+与 HashMap 一样，Hashtable 也不能保证其中 Key-Value 对的顺序。
+
+### Properties 类
+
+Properties 类是 Hashtable 的子类，该对象用于处理**属性文件**。
+
+由于属性文件里的 key、value 都是字符串类型，所以 Properties 里的 key
+和 value 都是**字符串**类型。
+
+存取数据时，建议使用 `setProperty(String key,String value)` 方法和
+ `getProperty(String key)` 方法。
+
+```java
+package parzulpan.com.java;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
+
+/**
+ * @Author : parzulpan
+ * @Time : 2020-11-26
+ * @Desc : Properties 处理配置文件
+ */
+
+public class PropertiesTest {
+    public static void main(String[] args) {
+        FileInputStream fileInputStream = null;
+
+        try {
+            Properties properties = new Properties();
+
+            fileInputStream = new FileInputStream("jdbc.properties");
+            properties.load(fileInputStream);
+
+            String name = properties.getProperty("name");
+            String password = properties.getProperty("password");
+
+            System.out.println("name = " + name + ", password = " + password);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (fileInputStream != null) {
+                try {
+                    fileInputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+}
+```
 
 ## Collections 工具类
+
+Collections 是一个操作 Set、List 和 Map 等集合的工具类。Collections 中提供了一系列**静态的方法**对集合元素进行排序、查询和修改等操作，还提供了对集合对象**设置不可变**、对集合对象**实现同步控制**等方法。
+
+常用方法：
+
+* 排序方法：
+  * `reverse(List)`：反转 List 中元素的顺序
+  * `shuffle(List)`：对 List 集合元素进行随机排序
+  * `sort(List)`：根据元素的自然顺序对指定 List 集合元素按升序排序
+  * `sort(List, Comparator)`：根据指定的 Comparator 产生的顺序对 List 集合元素进行排序
+  * `swap(List, int, int)`：将指定 List 集合中的 i 处元素和 j 处元素进行交换
+* 查找、替换方法：
+  * `Object max(Collection)`：根据元素的自然顺序，返回给定集合中的最大元素
+  * `Object max(Collection, Comparator)`：根据 Comparator 指定的顺序，返回给定集合中的最大元素
+  * `Object min(Collection)`
+  * `Object min(Collection, Comparator)`
+  * `int frequency(Collection, Object obj)`：返回指定集合中指定元素的出现次数
+  * `void copy(List dest, List src)`：将 src 中的内容复制到 dest中，这个需要**注意**：
+
+    ```java
+    // Collections.copy() 使用
+    @Test
+    public void test2() {
+        ArrayList arrayList = new ArrayList();
+        arrayList.add(123);
+        arrayList.add(24);
+        arrayList.add(644);
+        arrayList.add(2412324);
+        arrayList.add(2324);
+        arrayList.add(2114);
+
+        // 错误写法
+        // java.lang.IndexOutOfBoundsException: Source does not fit in dest
+        // ArrayList arrayList1 = new ArrayList();
+        // Collections.copy(arrayList1, arrayList);
+
+        // 正确写法
+        List<Object> arrayList1 = Arrays.asList(new Object[arrayList.size()]);
+        Collections.copy(arrayList1, arrayList);
+
+        System.out.println(arrayList1);
+
+    }
+
+    ```
+
+  * `boolean replaceAll(List list，Object oldVal，Object newVal)`：使用新值替换 List 对象的所有旧值
+* 同步控制方法：提供了多个 `synchronizedXxx()` 方法，该方法可使将指定集合包装成线程同步的集合，从而可以解决多线程并发访问集合时的线程安全问题
+  * `synchronizedCollection(Collection<T> c)`：
+  * `synchronizedList(List<T> list)`：
+  * `synchronizedMap(Map<K, V> m)`：
+  * `synchronizedSet(Set<T> s)`：
 
 ## 练习和总结
 
@@ -397,5 +675,127 @@ for (Object obj: collection) {
 * 31 是一个素数，素数作用就是如果我用一个数字来乘以这个素数，那么最终出来的结果只能被素数本身和被乘数还有 1 来整除。(减少冲突)
 
 总的来说，是为了减少冲突和提高算法效率。
+
+---
+
+以下的输出结果？
+
+```java
+package parzulpan.com.exer;
+
+import java.util.HashSet;
+import java.util.Objects;
+
+/**
+ * @Author : parzulpan
+ * @Time : 2020-11-26
+ * @Desc :
+ */
+
+public class HashSetTest {
+    public static void main(String[] args) {
+        HashSet set = new HashSet();
+        PersonA p1 = new PersonA(1001,"AA");
+        PersonA p2 = new PersonA(1002,"BB");
+        set.add(p1);
+        set.add(p2);
+        p1.name = "CC";
+        set.remove(p1);
+        System.out.println(set);  // [PersonA{id=1002, name='BB'}, PersonA{id=1001, name='CC'}]
+        set.add(new PersonA(1001,"CC"));
+        System.out.println(set);  // [PersonA{id=1002, name='BB'}, PersonA{id=1001, name='CC'}, PersonA{id=1001, name='CC'}]
+        set.add(new PersonA(1001,"AA"));
+        System.out.println(set);  // [PersonA{id=1002, name='BB'}, PersonA{id=1001, name='CC'}, PersonA{id=1001, name='CC'}, PersonA{id=1001, name='AA'}]
+    }
+}
+
+class PersonA {
+    public int id;
+    public String name;
+
+    public PersonA() {
+    }
+
+    public PersonA(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PersonA)) return false;
+
+        PersonA personA = (PersonA) o;
+
+        if (id != personA.id) return false;
+        return Objects.equals(name, personA.name);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "PersonA{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                '}';
+    }
+}
+```
+
+画图分析，HashSet 添加元素流程。
+
+---
+
+**HashMap 的底层实现原理？**
+
+* 对于 Java7:
+  * `HashMap map = new HashMap();` 在实例化后，底层创建了一个长度为 16 的一维数组 `Entry[] table`。执行 `map.put(kay1, value1);` 时，首先调用 key1 所在类的 hasCode() 计算其哈希值，然后得到其在 Entry 数组中的存放位置：
+    * 如果此位置上的数据为空，则 key1-value1 添加成功；（**情况1**）
+    * 如果此位置上的数据不为空，意味着此位置上存在一个或多个数据（以链表形式），比较 key1 与它们的哈希值：
+      * 如果 key1 和它们的哈希值都不相同，则  key1-value1 添加成功；（**情况2**）
+      * 如果 key1 和某一个数据（key2-value2）的哈希值相同，则调用 equals()：
+        * 如果 equals() 返回 false，则  key1-value1 添加成功；（**情况3**）
+        * 如果 equals() 返回 true，则使用 value1 替换 value2；
+  * 对于情况 2 和情况 3，此时的 key1-value1 和原来的数据以链表的方式存储。
+  * 在不断的添加中，当超出临界值且原有位置不为空时，会涉及扩容问题，默认的扩容方式是扩容到原来容量的 2 倍，并将原来的数据复制过来。
+* 对于 Java8：
+  * 相比较于 Java7，实例化后底层没有创建一个长度为 16 的数组，首次 `put()` 后才创建长度为 16 的数组。且一维数组不是 `Entry[]` 而是 `Node[]`。而且，底层结构还增加了 红黑树，当数组中某一个索引位置上的元素 **以链表形式存的数据个数 > 8** 且 **当前数组的长度 > 64 时**，此时此索引位置上的所有数据改为红黑树存储。
+
+---
+
+**HashMap 和 Hashtable 的异同？**
+
+* **HashMap**：作为 Map 接口的主要实现类；线程不安全的，效率高；可以存储 `null` 的 key 和 value；底层使用 数组+链表+红黑树（JDK8，JDK7无红黑树）存储；
+* **Hashtable**：作为 Map 接口的古老实现类；线程安全的，效率低；不可以存储 `null` 的 key 和 value；
+
+---
+
+**CurrentHashMap 和 Hashtable 的异同？**
+
+---
+
+**谈谈你对 HashMap 中 put/get 方法的认识？如果了解再谈谈
+ HashMap 的扩容机制？默认大小是多少？什么是负载因子（
+或填充比）？什么是吞吐临界值（或阈值、threshold）？**
+
+---
+
+**负载因子值的大小，对 HashMap 有什么影响？**
+
+* 负载因子的大小决定了 HashMap 的**数据密度**。
+* 负载因子越大密度越大，发生碰撞的几率越高，数组中的链表越容易长,
+造成查询或插入时的比较次数增多，性能会下降。
+* 负载因子密度越小，就越容易触发扩容，数据密度也越小，意味着发生碰撞的
+几率越小，数组中的链表也就越短，查询和插入时比较的次数也越小，性
+能会更高。但是会浪费一定的内容空间。而且经常扩容也会影响性能，建
+议初始化预设大一点的空间。
+* 按照其他语言的参考及研究经验，会考虑将负载因子设置为 0.7~0.75，此时平均检索长度接近于常数。
 
 ---

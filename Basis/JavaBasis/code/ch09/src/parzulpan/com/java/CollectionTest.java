@@ -2,9 +2,7 @@ package parzulpan.com.java;
 
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
+import java.util.*;
 
 /**
  * @Author : parzulpan
@@ -69,6 +67,30 @@ public class CollectionTest {
 
         // iterator()   返回迭代器对象，用于集合遍历
         System.out.println(collection.iterator());
+
+    }
+
+    // Collections.copy() 使用
+    @Test
+    public void test2() {
+        ArrayList arrayList = new ArrayList();
+        arrayList.add(123);
+        arrayList.add(24);
+        arrayList.add(644);
+        arrayList.add(2412324);
+        arrayList.add(2324);
+        arrayList.add(2114);
+
+//        // java.lang.IndexOutOfBoundsException: Source does not fit in dest
+//        ArrayList arrayList1 = new ArrayList();
+//        Collections.copy(arrayList1, arrayList);
+
+        // 正确写法
+        List<Object> arrayList1 = Arrays.asList(new Object[arrayList.size()]);
+        Collections.copy(arrayList1, arrayList);
+
+
+        System.out.println(arrayList1);
 
     }
 
