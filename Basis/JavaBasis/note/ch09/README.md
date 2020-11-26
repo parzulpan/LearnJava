@@ -21,7 +21,7 @@ Array 在存储方面的缺点：
 * **Collection 接口**：单列集合，用来存储一个一个的对象
   * **List 接口**：存储有序的、可重复的对象
     * **ArrayList**：作为 List 接口的主要实现类；底层使用 `Object[] elementData` 存储，适用于频繁随机访问操作；`add(E e)` 默认情况下，扩容为原来的容量的 1.5 倍；线程不安全的，效率高；
-    * **LingkedList**： 底层使用双向链表存储，适用于频繁插入、删除操作；线程不安全的，效率高；
+    * **LinkedList**： 底层使用双向链表存储，适用于频繁插入、删除操作；线程不安全的，效率高；
     * **Vector**：作为 List 接口的古老实现类；底层使用 `Object[] elementData` 存储，适用于频繁随机访问操作；`add(E e)` 默认情况下，扩容为原来的容量的 2 倍；线程安全的，效率低；
   * **Set 接口**：存储无序的、不可重复的对象
     * **HashSet**：作为 Set 接口的主要实现类；线程不安全的，效率高；
@@ -563,7 +563,7 @@ public class PropertiesTest {
 
 ## Collections 工具类
 
-Collections 是一个操作 Set、List 和 Map 等集合的工具类。Collections 中提供了一系列**静态的方法**对集合元素进行排序、查询和修改等操作，还提供了对集合对象**设置不可变**、对集合对象**实现同步控制**等方法。
+Collections 是一个操作 **Set**、**List** 和 **Map** 等集合的工具类。Collections 中提供了一系列**静态的方法**对集合元素进行排序、查询和修改等操作，还提供了对集合对象**设置不可变**、对集合对象**实现同步控制**等方法。
 
 常用方法：
 
@@ -678,7 +678,7 @@ for (Object obj: collection) {
 
 ---
 
-以下的输出结果？
+**以下的输出结果？**
 
 ```java
 package parzulpan.com.exer;
@@ -749,7 +749,7 @@ class PersonA {
 }
 ```
 
-画图分析，HashSet 添加元素流程。
+画图分析，考察 HashSet 添加元素流程。
 
 ---
 

@@ -27,8 +27,9 @@
   * [枚举类与注解](note/ch08/README.md)
 * 集合
   * [集合](note/ch09/README.md)
-* 泛型与 File
-* IO 流
+* 泛型
+  * [泛型](note/ch10/README.md)
+* File 与 IO 流
 * 网络编程
 * 反射
 * 动态代理与 Java8 新特性
