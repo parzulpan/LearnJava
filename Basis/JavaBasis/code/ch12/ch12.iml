@@ -17,6 +17,5 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="commons-io-2.5" level="project" />
   </component>
 </module>
