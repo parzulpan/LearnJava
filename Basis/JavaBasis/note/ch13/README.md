@@ -453,12 +453,209 @@ public class ReflectionTest1 {
         // 调用此构造器创建运行时类的对象
         Person tom = declaredConstructor.newInstance("Tom");
         System.out.println(tom);    // Person{name='Tom', age=0}
-
     }
 }
 ```
 
 ## 反射的应用：动态代理
+
+**代理设计模式**：使用一个代理将对象包装起来, 然后用该代理对象取代原始对象。任何对原始对象的调用都要通过代理。代理对象决定是否以及何时将方法调用转到原始对象上。
+
+代理一般分为两种：
+
+* 静态代理；
+* 动态代理。
+
+**静态代理**的缺点：
+
+* 代理类和被代理类在编译期间就被确定了，不利于程序的扩展。
+* 同时，每一个代理类只能为一个接口服务，这样一来程序开发中必然产生过多的代理。
+
+```java
+package parzulpan.com.java1;
+
+/**
+ * @Author : parzulpan
+ * @Time : 2020-11-28
+ * @Desc : 静态代理的举例
+ * 特点：代理类和被代理类在编译期间就被确定了，不利于程序的扩展。
+ * 同时，每一个代理类只能为一个接口服务，这样一来程序开发中必然产生过多的代理。
+ */
+
+public class StaticProxyTest {
+    public static void main(String[] args) {
+        // 创建被代理类的对象
+        NikeClothFactory nikeClothFactory = new NikeClothFactory();
+        // 创建代理类的对象
+        ProxyClothFactory proxyClothFactory = new ProxyClothFactory(nikeClothFactory);
+
+        proxyClothFactory.produceCloth();
+    }
+}
+
+// 工厂接口
+interface ClothFactory {
+    void produceCloth();
+}
+
+// 代理类
+class ProxyClothFactory implements ClothFactory {
+    private ClothFactory factory;   // 用被代理类对象进行实例化
+
+    public ProxyClothFactory(ClothFactory factory) {
+        this.factory = factory;
+    }
+
+    @Override
+    public void produceCloth() {
+        System.out.println("代理工厂进行准备工作！");
+
+        factory.produceCloth();
+
+        System.out.println("代理工厂进行收尾工作！");
+    }
+}
+
+
+// 被代理类
+class NikeClothFactory implements ClothFactory {
+
+    @Override
+    public void produceCloth() {
+        System.out.println("Nike 工厂生产一批球鞋！");
+    }
+}
+```
+
+**动态代理**是指客户通过代理类来调用其它对象的方法，并且是在程序运行时
+根据需要动态创建目标类的代理对象。动态代理使用场合有**调试**、**远程方法调用**等。
+
+**动态代理实现步骤**：
+
+* 创建一个实现接口 InvocationHandler 的类，它必须实现 invoke 方法，以完成代理的具体操作。
+* 创建被代理的类以及接口。
+* 通过 Proxy 的静态方法 `newProxyInstance(ClassLoader loader, Class[] interfaces, InvocationHandler h)` 创建一个接收被代理类接口的代理工厂类。
+* 通过代理工厂类代理调用实现类的方法。
+
+```java
+package parzulpan.com.java1;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
+/**
+ * @Author : parzulpan
+ * @Time : 2020-11-28
+ * @Desc : 动态代理的举例
+ * 要想实现动态代理，需要解决两个问题：
+ * 1. 如果根据加载到内存中的被代理类，动态的创建一个代理类及其对象？
+ * 2. 当通过代理类的对象调用方法时，如果动态的去调用被代理类中的同名方法？
+ */
+
+public class ProxyTest {
+    public static void main(String[] args) {
+        // 被代理类
+        SuperMan superMan = new SuperMan();
+//        Object proxyInstance = ProxyFactory.getProxyInstance(superMan);
+        // 动态代理类
+        Human proxyInstance = (Human) ProxyFactory.getProxyInstance(superMan);
+        String belief = proxyInstance.getBelief();
+        System.out.println(belief);
+        proxyInstance.eat("回锅肉");
+
+        System.out.println();
+
+        // 被代理类
+        NikeClothFactory nikeClothFactory = new NikeClothFactory();
+        // 动态代理类
+        ClothFactory proxyInstance1 = (ClothFactory) ProxyFactory.getProxyInstance(nikeClothFactory);
+        proxyInstance1.produceCloth();
+    }
+}
+
+// 被代理接口
+interface Human {
+    String getBelief();
+    void eat(String food);
+}
+
+// AOP
+class HumanUtil {
+    public void method1() {
+        System.out.println("我是方法一！");
+    }
+
+    public void method2() {
+        System.out.println("我是方法二！");
+    }
+}
+
+// 被代理类
+class SuperMan implements Human {
+
+    @Override
+    public String getBelief() {
+        return "我相信我可以飞！";
+    }
+
+    @Override
+    public void eat(String food) {
+        System.out.println("我喜欢吃 " + food);
+    }
+}
+
+// 代理工厂
+class ProxyFactory {
+    /**
+     * 解决问题1
+     * @param obj 被代理类的对象
+     * @return 代理类的对象
+     */
+    public static Object getProxyInstance(Object obj) {
+        MyInvocationHandler handler = new MyInvocationHandler();
+
+        handler.bind(obj);
+
+        return Proxy.newProxyInstance(obj.getClass().getClassLoader(), obj.getClass().getInterfaces(), handler);
+    }
+}
+
+// 实现接口 InvocationHandler 的类
+class MyInvocationHandler implements InvocationHandler {
+    private Object obj; // 需要使用被代理类的对象进行赋值
+
+    // 绑定被代理类
+    public void bind(Object obj) {
+        this.obj = obj;
+    }
+
+    // 当通过代理类的对象调用方法 A 时，就会调用这个 invoke()
+    // 解决问题2，将被代理类要执行的方法 A 的功能就声明在 invoke() 中
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        // 使用 AOP
+        HumanUtil humanUtil = new HumanUtil();
+
+        humanUtil.method1();
+
+        // method 作为被代理类对象要调用的方法
+        // obj 被代理类对象
+        // returnValue 作为当前类的 invoke() 的返回值
+        Object returnValue = method.invoke(obj, args);
+
+        humanUtil.method2();
+
+        return returnValue;
+    }
+}
+```
+
+动态代理和 AOP（Aspect Orient Programming，**面向切面编程**），即 AOP 代理里的方法可以在执行目标方法之前、之后插入一些通用处理。如下图：
+
+![AOP](../../img/AOP.png)
+
+实现如上代码的 HumanUtil 类。
 
 ## 总结和练习
 
@@ -471,5 +668,9 @@ public class ReflectionTest1 {
 ---
 
 **反射机制的使用时机？应用举例？**
+
+动态代理。
+
+框架 = 注解 + 反射 + 设计模式。
 
 ---
