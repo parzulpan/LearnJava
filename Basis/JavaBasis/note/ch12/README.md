@@ -124,7 +124,7 @@ public class InetAdressTest {
 
 ### Socket
 
-客户端和服务器工作的核心逻辑：
+客户端和服务器端工作的核心逻辑：
 
 ![客户端和服务器工作的核心逻辑](../../img/客户端和服务器工作的核心逻辑.jpg)
 
@@ -383,7 +383,7 @@ public class TCPTest1 {
 
             // 4.
             byte[] buffer = new byte[1024];
-            int data;
+            int data;h 
             while ((data = bis.read(buffer)) != -1) {
                 os.write(buffer, 0, data);
             }
@@ -711,7 +711,7 @@ public class URLTest {
 }
 ```
 
-```
+```java
 package parzulpan.com.java;
 
 import java.io.*;

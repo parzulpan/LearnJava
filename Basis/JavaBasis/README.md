@@ -34,7 +34,11 @@
 * 网络编程
   * [网络编程](note/ch12/README.md)
 * 反射
-* 动态代理与 Java8 新特性
-* Java9&10&&11 新特性
+  * [反射](note/ch13/README.md)
+* Java8-11 新特性
+  * [Java8 新特性]
+  * [Java9 新特性]
+  * [Java10 新特性]
+  * [Java11 新特性]
 
 ## 说明
