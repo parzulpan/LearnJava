@@ -8,19 +8,14 @@ Java 入门和进阶学习。
 
 * Java 基础
   * [Java 基础](Basis/JavaBasis/README.md)
-  * MySQL
-  * Oracle
+  * MySQL 基础
+  * Oracle 基础
   * JDBC
   * JUC
   * NIO
-  * Linux
+  * Linux 基础
   * IDEA&Maven&Git
-  * Java8
-  * Java9
-  * Java11
-  * Java12&13
-  * Java14
-  * Java15
+  * Java 新特性
   * 数据结构和算法
   * 设计模式
 * Java Web

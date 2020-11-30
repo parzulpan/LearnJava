@@ -36,9 +36,17 @@
 * 反射
   * [反射](note/ch13/README.md)
 * Java8-11 新特性
-  * [Java8 新特性]
-  * [Java9 新特性]
-  * [Java10 新特性]
-  * [Java11 新特性]
+  * [Java8 新特性](note/ch14/README.md)
+  * [Java9 新特性](note/ch14/README01.md)
+  * [Java10 新特性](note/ch14/README02.md)
+  * [Java11 新特性](note/ch14/README03.md)
 
 ## 说明
+
+**学习的思维方式**：
+
+* 大处着眼，小处着手；
+* 逆向思维、反证法；
+  * 如果不这样做，会发生什么？
+  * 如果这样做，会什么好处？
+* 透过问题看本质；
