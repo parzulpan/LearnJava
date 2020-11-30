@@ -10,11 +10,11 @@ Java 入门和进阶学习。
   * [Java 基础](Basis/JavaBasis/README.md)
   * MySQL 基础
   * Oracle 基础
-  * JDBC
+  * IDEA&Maven&Git
+  * [JDBC](Basis/JDBC/README.md)
   * JUC
   * NIO
   * Linux 基础
-  * IDEA&Maven&Git
   * Java 新特性
   * 数据结构和算法
   * 设计模式
