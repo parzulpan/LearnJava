@@ -1,6 +1,5 @@
 package cn.parzulpan.jdbc.exer;
 
-import cn.parzulpan.jdbc.bean.Customer;
 import cn.parzulpan.jdbc.util.JDBCUtils;
 
 import java.text.ParseException;

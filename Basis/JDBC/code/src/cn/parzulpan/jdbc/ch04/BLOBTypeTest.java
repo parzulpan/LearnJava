@@ -1,18 +1,3 @@
-# 操作 BLOB 类型字段
-
-## MySQL BLOB 类型
-
-* MySQL 中，BLOB 是一个二**进制大型对象**，是一个可以存储大量数据的容器，它能容纳不同大小的数据。
-* 插入 BLOB 类型的数据必须使用 **PreparedStatement** ，因为 BLOB 类型的数据无法使用字符串拼接写的。
-* MySQL 的四种 BLOB 类型（除了在存储的最大信息量上不同外，他们是等同的）：
-  * TinyBlob，最大 255 Byte；
-  * Blob，最大 65 KB；
-  * MediumBlod，最大 16 MB；
-  * LongBlod，最大 4 GB。
-
-如果在指定了相关的 Blob 类型以后，还报错：`xxx too large`，那么在 mysql 的安装目录下，找 my.ini（my.cnf） 文件加上如下的配置参数： **max_allowed_packet=16M**。同时注意，修改了 my.ini 文件之后，需要重新启动 mysql 服务。
-
-```java
 package cn.parzulpan.jdbc.ch04;
 
 import cn.parzulpan.jdbc.bean.Customer;
@@ -107,6 +92,3 @@ public class BLOBTypeTest {
         }
     }
 }
-```
-
-## 总结和练习

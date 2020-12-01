@@ -9,7 +9,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * @Author : parzulpan
@@ -64,7 +63,8 @@ public class PreparedStatementTest {
         System.out.println();
 
         // 注意别名问题和表名是关键字的问题（``）
-        String sql1 = "select order_id orderId, order_name orderName, order_date orderDate from `order` where order_id = ?";
+        String sql1 = "select order_id orderId, order_name orderName, order_date orderDate from `order` " +
+                "where order_id = ?";
         int orderId = 4;
         Order order = jdbcUtils.getQuery(Order.class, sql1, orderId);
         System.out.println(order);
@@ -81,7 +81,8 @@ public class PreparedStatementTest {
 
         System.out.println();
 
-        String sql1 = "select order_id orderId, order_name orderName, order_date orderDate from `order` where order_id < ?";
+        String sql1 = "select order_id orderId, order_name orderName, order_date orderDate from `order` " +
+                "where order_id < ?";
         int orderId = 4;
         List<Order> orders = jdbcUtils.getAllQuery(Order.class, sql1, orderId);
         orders.stream().forEach(System.out::println);

@@ -20,7 +20,7 @@ public class JDBCUtils {
      * 获取数据库连接
      * @return 数据库连接
      */
-    public static Connection connect() {
+    public static Connection getConnection() {
         try {
             // 1. 加载配置信息
             InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("jdbc.properties");
@@ -31,10 +31,10 @@ public class JDBCUtils {
             String user = properties.getProperty("user");
             String password = properties.getProperty("password");
             String url = properties.getProperty("url");
-            String driverClass = properties.getProperty("driverName");
+            String driverName = properties.getProperty("driverName");
 
             // 3. 加载驱动
-            Class.forName(driverClass);
+            Class.forName(driverName);
 
             // 4. 获取连接
             return DriverManager.getConnection(url, user, password);
@@ -85,7 +85,7 @@ public class JDBCUtils {
         PreparedStatement ps = null;
         try {
             // 获取数据库连接
-            connection = connect();
+            connection = getConnection();
 
             // 预编译 sql 语句，获取 PreparedStatement 实例
             if (connection != null) {
@@ -128,7 +128,7 @@ public class JDBCUtils {
         ResultSet rs = null;
         try {
             // 获取数据库连接
-            connection = connect();
+            connection = getConnection();
 
             // 预编译 sql 语句，获取 PreparedStatement 实例
             if (connection != null) {
@@ -147,14 +147,14 @@ public class JDBCUtils {
                 //得到结果集的元数据
                 ResultSetMetaData md = rs.getMetaData();
 
-                // 通过结果集的元数据得到 列数 columnCount、列名 columnLabel
+                // 通过结果集的元数据得到 列数 columnCount、列的别名 columnLabel
                 int columnCount = md.getColumnCount();
-                if (rs.next()) {    // 判断结果集下一条是否有数据，如果有数据，则返回 true 并指针下移
+                if (rs.next()) {    // 判断结果集下一条是否有数据(即下一行是否有效)，如果有数据，则返回 true 并指针下移
                     T t = clazz.newInstance();
-                    for (int i = 0; i < columnCount; i++) { // 遍历每一个行
+                    for (int i = 0; i < columnCount; i++) { // 遍历每一行
                         // 获取列名
 //                        String columnLabel = md.getColumnName(i + 1);
-                        // 获取列的别名，为了解决对象属性名和列名不一致，所以将对象属性名作为列名的别名
+                        // 获取列的别名，为了解决对象属性名和列名不一致，所以将列名的别名作为对象属性名
                         String columnLabel = md.getColumnLabel(i + 1);
                         // 获取列值
                         Object columnVal = rs.getObject(i + 1);
@@ -195,7 +195,7 @@ public class JDBCUtils {
         ResultSet rs = null;
         try {
             // 获取数据库连接
-            connection = connect();
+            connection = getConnection();
 
             // 预编译 sql 语句，获取 PreparedStatement 实例，这是防止 SQL 注入的关键
             if (connection != null) {

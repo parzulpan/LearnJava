@@ -1,23 +1,3 @@
-# 批量插入
-
-## 批量执行 SQL 语句
-
-当需要成批插入或者更新记录时，可以采用 Java 的**批量更新**机制，这一机制允许多条语句一次性提交给数据库批量处理。通常情况下比单独提交处理更有效率。
-
-JDBC 的批量处理语句包括下面三个方法：
-
-* **`addBatch(String)`**：添加需要批量处理的 SQL 语句或是参数；
-* **`executeBatch()`**：执行批量处理语句；
-* **`clearBatch()`**:清空缓存的数据。
-
-通常会遇到两种批量执行 SQL 语句的情况：
-
-* 多条 SQL 语句的批量处理；
-* 一个 SQL 语句的批量传参。
-
-## 高效的批量插入
-
-```java
 package cn.parzulpan.jdbc.ch05;
 
 import cn.parzulpan.jdbc.util.JDBCUtils;
@@ -135,8 +115,3 @@ public class BulkInsertTest {
 
     }
 }
-```
-
-推荐使用方式四。
-
-## 练习和总结
