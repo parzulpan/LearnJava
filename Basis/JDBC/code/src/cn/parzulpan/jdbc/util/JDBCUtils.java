@@ -1,5 +1,9 @@
 package cn.parzulpan.jdbc.util;
 
+import com.alibaba.druid.pool.DruidDataSourceFactory;
+import org.apache.commons.dbutils.DbUtils;
+
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -15,6 +19,18 @@ import java.util.Properties;
  */
 
 public class JDBCUtils {
+    private static DataSource dataSource = null;
+
+    static {
+        try {
+            Properties properties = new Properties();
+            InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("druid.properties");
+            properties.load(is);
+            dataSource = DruidDataSourceFactory.createDataSource(properties);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * 获取数据库连接
@@ -46,14 +62,39 @@ public class JDBCUtils {
     }
 
     /**
+     * 获取数据库连接，使用 Druid 数据库连接池
+     * @return 数据库连接
+     */
+    public static Connection getDruidConnection() throws SQLException {
+        return dataSource.getConnection();
+    }
+
+    /**
+     * 使用DbUtils，静默关闭数据库资源
+     * @param connection 数据库连接
+     * @param statement 声明
+     * @param resultSet 结果集
+     */
+    public static void closeResourceQuietly(Connection connection, Statement statement, ResultSet resultSet) {
+        DbUtils.closeQuietly(connection);
+        DbUtils.closeQuietly(statement);
+        DbUtils.closeQuietly(resultSet);
+    }
+
+    /**
      * 关闭数据库资源
      * @param connection 数据库连接
      * @param statement 声明
      */
     public static void closeResource(Connection connection, Statement statement) {
         try {
-            connection.close();
-            statement.close();
+            if (connection != null) {
+                connection.close();
+            }
+            if (statement != null) {
+                statement.close();
+            }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -63,13 +104,19 @@ public class JDBCUtils {
      * 关闭数据库资源
      * @param connection 数据库连接
      * @param statement 声明
-     * @param rs 结果集
+     * @param resultSet 结果集
      */
-    public static void closeResource(Connection connection, Statement statement, ResultSet rs) {
+    public static void closeResource(Connection connection, Statement statement, ResultSet resultSet) {
         try {
-            connection.close();
-            statement.close();
-            rs.close();
+            if (connection != null) {
+                connection.close();
+            }
+            if (statement != null) {
+                statement.close();
+            }
+            if (resultSet != null) {
+                resultSet.close();
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -79,6 +126,7 @@ public class JDBCUtils {
      * 使用 PreparedStatement 实现增、删、改操作
      * @param sql sql 语句
      * @param args  占位符
+     * @return 是否有数据更新
      */
     public static int update(String sql, Object ...args) {
         Connection connection = null;
@@ -106,9 +154,37 @@ public class JDBCUtils {
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            if (connection != null && ps != null) {
-                closeResource(connection, ps);
+            closeResource(connection, ps);
+        }
+
+        return 0;
+    }
+
+    /**
+     * 使用事务实现增、删、改操作
+     * @param connection 数据库连接
+     * @param sql sql 语句
+     * @param args 占位符
+     * @return 是否有数据更新
+     */
+    public static int update(Connection connection, String sql, Object ...args) {
+        PreparedStatement ps = null;
+        try {
+            if (connection != null) {
+                ps = connection.prepareStatement(sql);
             }
+
+            if (ps != null) {
+                for (int i = 0; i < args.length; i++) {
+                    ps.setObject(i + 1, args[i]);
+                }
+
+                return ps.executeUpdate();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResource(null, ps);
         }
 
         return 0;
@@ -173,9 +249,52 @@ public class JDBCUtils {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if (connection != null && ps != null && rs != null) {
-                closeResource(connection, ps, rs);
+            closeResource(connection, ps, rs);
+        }
+
+        return null;
+    }
+
+    /**
+     * 使用事务
+     * @param clazz 类对象
+     * @param sql sql 语句
+     * @param args  占位符
+     * @param <T> 泛型
+     * @return 返回一个对象
+     */
+    public <T> T getQuery(Connection connection, Class<T> clazz, String sql, Object ...args) {
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            ps = connection.prepareStatement(sql);
+
+            for (int i = 0; i < args.length; i++) {
+                ps.setObject(i + 1, args[i]);
             }
+
+            rs = ps.executeQuery();
+
+            ResultSetMetaData md = rs.getMetaData();
+
+            int columnCount = md.getColumnCount();
+            if (rs.next()) {
+                T t = clazz.newInstance();
+                for (int i = 0; i < columnCount; i++) { // 遍历每一行
+                    String columnLabel = md.getColumnLabel(i + 1);
+                    Object columnVal = rs.getObject(i + 1);
+
+                    Field field = clazz.getDeclaredField(columnLabel);
+                    field.setAccessible(true);
+                    field.set(t, columnVal);
+                }
+
+                return t;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeResource(null, ps, rs);
         }
 
         return null;
@@ -245,9 +364,7 @@ public class JDBCUtils {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if (connection != null && ps != null && rs != null) {
-                closeResource(connection, ps, rs);
-            }
+            closeResource(connection, ps, rs);
         }
 
         return null;

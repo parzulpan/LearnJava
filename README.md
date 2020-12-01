@@ -1,6 +1,6 @@
 # LearnJava
 
-Java 入门和进阶学习。
+Start learning Java and related technology stack.
 
 在线浏览：https://learnjava.parzulpan.cn
 
