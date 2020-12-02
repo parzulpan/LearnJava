@@ -24,7 +24,7 @@ public class TransactionTest1 {
         // 先运行 test2()，然后运行 test1()，发现数据已更改，但是10秒后，再然后运行 test1()，发现数据已恢复
         connection.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
 
-        // TRANSACTION_READ_UNCOMMITTED 读已提交数据
+        // TRANSACTION_READ_COMMITTED 读已提交数据
         // 只允许事务读取已经被其他事务提交的变更，避免 脏读问题，出现 不可重复读、幻读等问题
         // 先运行 test2()，然后运行 test1()，发现数据未更改，10秒后，再然后运行 test1()，发现数据依然未更改
         connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);

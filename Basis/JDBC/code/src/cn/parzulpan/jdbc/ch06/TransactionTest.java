@@ -33,7 +33,7 @@ public class TransactionTest {
         Connection connection = null;
         try {
             connection = JDBCUtils.getConnection();
-            // 开启事务
+            // 取消事务自动提交
             connection.setAutoCommit(false);
 
             String sql1 = "update user_table set balance = balance - 100 where user = ?";

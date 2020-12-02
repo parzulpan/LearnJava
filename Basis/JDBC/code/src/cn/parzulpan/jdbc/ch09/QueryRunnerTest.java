@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * @Author : parzulpan
  * @Time : 2020-12-01
- * @Desc : dbutils QueryRunner 使用
+ * @Desc : DBUtils QueryRunner 使用
  */
 
 public class QueryRunnerTest {
