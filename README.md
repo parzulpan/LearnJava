@@ -2,7 +2,7 @@
 
 Start learning Java and related technology stack.
 
-在线浏览：https://learnjava.parzulpan.cn
+[online](https://learnjava.parzulpan.cn)
 
 ## 目录
 
@@ -14,12 +14,12 @@ Start learning Java and related technology stack.
   * [JDBC 核心](Basis/JDBC/README.md)
   * JUC 核心
   * NIO 核心
-  * JVM 源码分析
+  * JVM 深入
   * 数据结构和算法
   * Java 设计模式
   * Java 新特性
 * Java Web
-  * HTML&CSS 基础
+  * [HTML&CSS 基础](Web/note/HTML&CSS.md)
   * JavaScript 基础
   * JQuery 框架
   * XML 文件
@@ -46,16 +46,16 @@ Start learning Java and related technology stack.
   * Spring Cloud
   * Spring Data
   * Spring Security
-  * Jenkins
   * Docker
   * Kubernetes
-  * Dubbo
   * Nginx
+  * Dubbo
   * Netty
   * Redis
-  * MySQL 高级
   * ActiveMQ
+  * MySQL 高级
   * ShardingSphere
+  * Jenkins
 * 项目实战
   * 众筹网站
   * 学院网站
@@ -70,13 +70,12 @@ Start learning Java and related technology stack.
 
 ### 链接
 
-* [技术面试必备基础知识](https://github.com/CyC2018/CS-Notes)
-* [可能是一份最适合你的后端面试指南](https://juejin.im/post/6844903683658874893)
-* [Java 工程师面试宝典-牛客网](https://www.nowcoder.com/tutorial/94/ea1986fcff294f6292385703e94689e8)
-* [Java 工程师进阶知识](https://github.com/doocs/advanced-java)
-* [Java 学习 + 面试指南](https://github.com/Snailclimb/JavaGuide)
+* [可能是一份最适合你的后端面试指南](https://juejin.im/post/6844903683658874893)：面试前一天，**必看**
+* [Java 工程师进阶知识](https://github.com/doocs/advanced-java)：进阶知识，**必看**
+* [Java 学习 + 面试指南](https://github.com/Snailclimb/JavaGuide)：面试突击，**必看**
+* [Java 面试 + Java 学习指南](https://github.com/AobingJava/JavaFamily)：经验面经，**选看**
+* [技术面试必备基础知识](https://github.com/CyC2018/CS-Notes)：日常细看，**选看**
 * [Java 工程师面试复习指南](https://github.com/h2pl/Java-Tutorial)
-* [Java 面试 + Java 学习指南](https://github.com/AobingJava/JavaFamily)
 * [互联网面试笔记](https://github.com/zhengjianglong915/note-of-interview)
 * [互联网公司经典技术架构](https://github.com/davideuler/architecture.of.internet-product)
 * [大厂 TopK 面试题](https://osjobs.net/topk/)
@@ -86,6 +85,11 @@ Start learning Java and related technology stack.
 ### 书籍
 
 * [《数据结构与算法分析 Java 语言描述》](https://book.douban.com/subject/3351237/)
+* [《深入理解Java虚拟机（第3版）》](https://book.douban.com/subject/34907497/)
+
+### 文档
+
+* [Spring 全家桶](https://spring.io/projects/spring-boot)
 
 ## 协议
 
