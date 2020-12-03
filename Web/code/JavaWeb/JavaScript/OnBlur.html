@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>onblur 失去焦点事件</title>
+    <script type="text/javascript">
+        // console 是控制台对象，是由 JavaScript 语言提供，专门用来向浏览器的控制器打印输出， 用于测试使用
+        function onBlurFun() {
+            console.log("静态注册 onblur 事件");
+        }
+
+        window.onload = function () {
+            let element = document.getElementById("password");
+            element.onblur = function () {
+                console.log("动态注册 onblur 事件");
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <table>
+        <tr>
+            <th>用户名</th>
+            <th><input type="text" onblur="onBlurFun()"></th>
+        </tr>
+        <tr>
+            <th>密码</th>
+            <th><input type="password" id="password"></th>
+        </tr>
+    </table>
+
+</body>
+</html>

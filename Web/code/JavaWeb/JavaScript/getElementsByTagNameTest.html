@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>getElementsByTagName 方法示例</title>
+    <script type="text/javascript">
+        let lang = document.getElementsByTagName("input");
+
+        function checkAll() {
+            for (let i = 0; i < lang.length; i++) {
+                lang[i].checked = true;
+            }
+        }
+
+        function checkNo() {
+            for (let i = 0; i < lang.length; i++) {
+                lang[i].checked = false;
+            }
+        }
+
+        function checkReverse() {
+            for (let i = 0; i < lang.length; i++) {
+                lang[i].checked = !lang[i].checked;
+            }
+        }
+    </script>
+</head>
+<body>
+
+喜欢的编程语言：
+<label>
+    <input type="checkbox" name="lang" value="java" checked="checked">
+</label>Java
+<label>
+    <input type="checkbox" name="lang" value="cpp">
+</label>C++
+<label>
+    <input type="checkbox" name="lang" value="python">
+    Python
+</label>
+<label>
+    <input type="checkbox" name="lang" value="js">
+    JavaScript
+</label>
+
+<br>
+
+<button onclick="checkAll()">全选</button>
+<button onclick="checkNo()">全不选</button>
+<button onclick="checkReverse()">反选</button>
+
+
+</body>
+</html>

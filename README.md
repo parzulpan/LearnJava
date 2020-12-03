@@ -20,7 +20,8 @@ Start learning Java and related technology stack.
   * Java 新特性
 * Java Web
   * [HTML&CSS 基础](Web/note/HTML&CSS.md)
-  * JavaScript 基础
+  * [JavaScript 基础](Web/note/JavaScript.md)
+    * [现代 JavaScript 教程](Web/note/js_model_tutorial.md)
   * JQuery 框架
   * XML 文件
   * Tomcat 使用
@@ -73,6 +74,7 @@ Start learning Java and related technology stack.
 * [可能是一份最适合你的后端面试指南](https://juejin.im/post/6844903683658874893)：面试前一天，**必看**
 * [Java 工程师进阶知识](https://github.com/doocs/advanced-java)：进阶知识，**必看**
 * [Java 学习 + 面试指南](https://github.com/Snailclimb/JavaGuide)：面试突击，**必看**
+* [技术面试基础知识总结](https://github.com/huihut/interview)：面试突击，**必看**
 * [Java 面试 + Java 学习指南](https://github.com/AobingJava/JavaFamily)：经验面经，**选看**
 * [技术面试必备基础知识](https://github.com/CyC2018/CS-Notes)：日常细看，**选看**
 * [Java 工程师面试复习指南](https://github.com/h2pl/Java-Tutorial)

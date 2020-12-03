@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>onchange 内容发生改变事件</title>
+    <script type="text/javascript">
+        function onChangeFun() {
+            alert("最喜欢的编程语言已变化！")
+        }
+
+        window.onload = function () {
+            let tools = document.getElementById("tools");
+            tools.onchange = function () {
+                alert("最喜欢的开发工具已变化！")
+            }
+        }
+
+    </script>
+</head>
+<body>
+
+    <label>
+        请选择你最喜欢的编程语言：
+        <select onchange="onChangeFun()">
+            <option>Java</option>
+            <option selected="selected">Python</option>
+            <option>JavaScript</option>
+            <option>C++</option>
+        </select>
+    </label>
+
+    <br>
+
+    <label for="tools">请选择你最喜欢的开发工具：</label><select id="tools">
+        <option>IDEA</option>
+        <option>VSCode</option>
+        <option>Vim</option>
+        <option>GitHub</option>
+    </select>
+
+</body>
+</html>

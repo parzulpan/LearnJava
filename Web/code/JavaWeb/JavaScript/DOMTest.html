@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DOM 练习</title>
+    <link rel="stylesheet" type="text/css" href="css.css">
+    <script type="text/javascript" src="dom.js"></script>
+</head>
+<body>
+    <div id="total">
+        <div class="inner">
+            <p>
+                你喜欢哪个城市？
+            </p>
+
+            <ul id="city">
+                <li id="bj">北京</li>
+                <li>重庆</li>
+                <li>成都</li>
+                <li>广州</li>
+            </ul>
+
+            <br>
+            <br>
+
+            <p>
+                你喜欢哪个编程语言？
+            </p>
+
+            <ul id="language">
+                <li id="cpp">C++</li>
+                <li>Java</li>
+                <li>Python</li>
+                <li>JavaScript</li>
+            </ul>
+
+            <br>
+            <br>
+
+            <p>
+                你喜欢哪个操作系统？
+            </p>
+
+            <ul id="os">
+                <li id="mac">Mac</li>
+                <li>Linux</li>
+                <li>Windows</li>
+            </ul>
+        </div>
+
+        <div class="inner">
+            Gender:
+            <input type="radio" name="gender" value="male">
+            Male
+            <input type="radio" name="gender" value="female">
+            Female
+
+            <br>
+
+            Name:
+            <input type="text" name="name" id="username" value="abcd">
+
+        </div>
+    </div>
+
+    <br>
+
+    <div id="btnList">
+        <div><button id="btn01">查找#bj 节点</button></div>
+        <div><button id="btn02">查找所有 li 节点</button></div>
+        <div><button id="btn03">查找 name=gender 的所有节点</button></div>
+        <div><button id="btn04">查找#city 下所有 li 节点</button></div>
+        <div><button id="btn05">返回#city 的所有子节点</button></div>
+        <div><button id="btn06">返回#os 的第一个子节点</button></div>
+        <div><button id="btn07">返回#bj 的父节点</button></div>
+        <div><button id="btn08">返回#mac 的前一个兄弟节点</button></div>
+        <div><button id="btn09">返回#username 的 value 属性值</button></div>
+        <div><button id="btn10">设置#username 的 value 属性值</button></div>
+        <div><button id="btn11">返回#bj 的文本值</button></div>
+    </div>
+</body>
+</html>

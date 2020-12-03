@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>getElementById 方法示例</title>
+    <style type="text/css">
+        img {
+            width: 18px;
+            height: 18px;
+        }
+    </style>
+    <script type="text/javascript">
+        // 当用户点击了较验按钮，要获取输出框中的内容。然后验证其是否合法。
+        // 验证的规则是：必须由字母，数字，下划线组成。并且长度是 5 到 12 位。
+        function onClickFun() {
+            let username = document.getElementById("username");
+            let usernameText = username.value;
+
+            // 正则表达式
+            let pattern = /^\w{5,12}$/;
+
+            let usernameSpan = document.getElementById("usernameSpan");
+            usernameSpan.innerHTML = "Hello World!";
+
+            if (pattern.test(usernameText)) {
+                // usernameSpan.innerHTML = "用户名合法！";
+                usernameSpan.innerHTML = "<img src=\"../img/right.png\" alt=\"资源不存在\">";
+
+            } else {
+                // usernameSpan.innerHTML = "用户名不合法！";
+                usernameSpan.innerHTML = "<img src=\"../img/wrong.png\" alt=\"资源不存在\">";
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <label for="username">用户名：</label><input type="text" id="username" value="xxx"/>
+    <button onclick="onClickFun()">校验</button>
+    <span id="usernameSpan" style="color: red">
+
+    </span>
+
+</body>
+</html>

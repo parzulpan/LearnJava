@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>onload 加载完成事件</title>
+    <script type="text/javascript">
+        // 静态注册
+        function onLoadFun() {
+            alert("静态注册 onload 事件");
+        }
+
+        // 动态注册
+        window.onload = function () {
+            alert("动态注册 onload 事件");
+        }
+    </script>
+</head>
+<!--onload 事件是浏览器解析完页面之后就会自动触发的事件-->
+<body onload="onLoadFun()">
+
+</body>
+</html>

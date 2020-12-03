@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>createElement 方法示例</title>
+    <script type="text/javascript">
+        window.onload = function () {
+            // 使用 js 创建 html 标签，并显示在页面上
+            // 标签内容为 <div> Hello World </div>
+            let divObj = document.createElement("div");
+            let textNodeObj = document.createTextNode("Hello World");
+            divObj.appendChild(textNodeObj);
+            document.body.appendChild(divObj);
+        }
+    </script>
+</head>
+<body>
+
+</body>
+</html>
