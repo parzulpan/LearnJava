@@ -22,7 +22,7 @@ Start learning Java and related technology stack.
   * [HTML&CSS 基础](Web/note/HTML&CSS.md)
   * [JavaScript 基础](Web/note/JavaScript.md)
     * [现代 JavaScript 教程](Web/note/js_model_tutorial.md)
-  * JQuery 框架
+  * [jQuery 基础](Web/note/jQuery.md)
   * XML 文件
   * Tomcat 使用
   * Servlet 程序

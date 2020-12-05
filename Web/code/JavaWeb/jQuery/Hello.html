@@ -2,15 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
-    // CDN
+    <title>jQuery 体验</title>
+<!--    CDN-->
 <!--    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.js"></script>-->
     <script type="text/javascript" src="../lib/jquery.js"></script>
     <script type="text/javascript">
-        alert($);
+        // 原生方法给按钮绑定单击事件
+        window.onload = function () {
+            // dom 对象
+            let btn01 = document.getElementById("btn01");
+            btn01.onclick = function () {
+                alert("JS 原生的单击事件")
+            }
+        };
+
+        // jQuery 给按钮绑定单击事件
+        $(function () {
+            // jQuery 对象
+            let $btn02 = $("#btn02");
+            $btn02.click(function () {
+                alert("jQuery 原生的单击事件")
+            })
+        });
     </script>
 </head>
 <body>
+    <button id="btn01">按钮1</button>
+    <button id="btn02">按钮2</button>
 
 </body>
 </html>

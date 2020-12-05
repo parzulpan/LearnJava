@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>事件 图片跟随</title>
+    <style type="text/css">
+        body {
+            text-align: center;
+        }
+
+        #small {
+            margin-top: 150px;
+        }
+
+        #showBig {
+            position: absolute;
+            display: none;
+        }
+    </style>
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $("#small").bind("mouseover mouseout mousemove", function (event) {
+                if (event.type === "mouseover") {
+                    $("#showBig").show();
+                } else if (event.type === "mousemove") {
+                    console.log(event);
+                    $("#showBig").offset({
+                        left: event.pageX + 10,
+                        top: event.pageY + 10
+                    });
+                } else if (event.type === "mouseout") {
+                    $("#showBig").hide();
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <img id="small" src="../img/small.jpg">
+
+    <div id="showBig">
+        <img src="../img/big.jpg">
+    </div>
+</body>
+</html>

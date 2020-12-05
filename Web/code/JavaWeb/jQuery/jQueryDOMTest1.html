@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>动态添加、删除表格记录</title>
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            // 删除函数
+            let deleteFun = function () {
+                let $trObj = $(this).parent().parent();
+                let name = $trObj.find("td:first").text();
+
+                if (confirm("您确定要删除 " + name + " 吗？")) {
+                    $trObj.remove();
+                }
+
+                return false;
+            };
+
+            // 提交按钮点击事件
+            $("#addEmpButton").click(function () {
+                let empName = $("#empName").val();
+                let email = $("#email").val();
+                let salary = $("#salary").val();
+
+                // 创建一个行标签对象，添加到显示数据的表格中
+                let $trObj = $(
+                "<tr>" +
+                    "<td>" + empName + "</td>" +
+                    "<td>" + email + "</td>" +
+                    "<td>" + salary + "</td>" +
+                    "<td><a href=\"deleteEmp?id=002\">Delete</a></td>" +
+                "</tr>"
+                );
+                $trObj.appendTo($("#employeeTable"));
+
+                // 给添加的行的 a 标签绑上事件
+                $trObj.find("a").click(deleteFun)
+            });
+
+            // 给删除的 a 标签绑定单击事件
+            $("a").click(deleteFun);
+
+        })
+
+    </script>
+</head>
+<body>
+
+    <table id="employeeTable" border="2px">
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Salary</th>
+            <th>&nbsp;</th>
+        </tr>
+        <tr>
+            <td>Tom</td>
+            <td>tom@163.com</td>
+            <td>18000</td>
+            <td><a href="deleteEmp?id=001">Delete</a></td>
+        </tr>
+        <tr>
+            <td>AAA</td>
+            <td>AAA@163.com</td>
+            <td>134000</td>
+            <td><a href="deleteEmp?id=002">Delete</a></td>
+        </tr>
+        <tr>
+            <td>PAf</td>
+            <td>PAf@163.com</td>
+            <td>20000</td>
+            <td><a href="deleteEmp?id=003">Delete</a></td>
+        </tr>
+    </table>
+
+    <div id="formDiv">
+        <h4>添加新员工</h4>
+
+        <table>
+            <tr>
+                <td class="word">name: </td>
+                <td class="inp">
+                    <input type="text" name="empName" id="empName">
+                </td>
+            </tr>
+            <tr>
+                <td class="word">email: </td>
+                <td class="inp">
+                    <input type="text" name="email" id="email">
+                </td>
+            </tr>
+            <tr>
+                <td class="word">salary: </td>
+                <td class="inp">
+                    <input type="text" name="salary" id="salary">
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" align="center">
+                    <button id="addEmpButton" value="abc">
+                        Submit
+                    </button>
+                </td>
+            </tr>
+        </table>
+
+    </div>
+
+</body>
+</html>
