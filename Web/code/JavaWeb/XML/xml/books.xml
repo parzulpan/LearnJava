@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<books>
+    <book id="SN124156869438690">
+        <name>Java 编程思想</name>
+        <author>XPS</author>
+        <price>30.9</price>
+    </book>
+    <book id="SN152353246262166">
+        <name>Effective Java</name>
+        <author>GKO</author>
+        <price>20.9</price>
+    </book>
+
+</books>

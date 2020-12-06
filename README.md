@@ -23,8 +23,8 @@ Start learning Java and related technology stack.
   * [JavaScript 基础](Web/note/JavaScript.md)
     * [现代 JavaScript 教程](Web/note/js_model_tutorial.md)
   * [jQuery 基础](Web/note/jQuery.md)
-  * XML 文件
-  * Tomcat 使用
+  * [XML 文件](Web/note/XML.md)
+  * [Tomcat 使用](Web/note/Tomcat.md)
   * Servlet 程序
   * JSP 页面
   * EL 表达式
