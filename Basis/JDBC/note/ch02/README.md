@@ -30,16 +30,16 @@ JDBC URL的标准由三部分组成，各部分间用冒号分隔：
 **常用 URL**：
 
 * MySQL 的连接 URL 编写方式：
-  * jdbc:mysql://主机名称:mysql服务端口号/数据库名称?参数=值&参数=值
-  * jdbc:mysql://localhost:3306/test
-  * jdbc:mysql://localhost:3306/test**?useUnicode=true&characterEncoding=utf8**（如果JDBC程序与服务器端的字符集不一致，会导致乱码，那么可以通过参数指定服务器端的字符集）
-  * jdbc:mysql://localhost:3306/test?user=root&password=123456
+  * `jdbc:mysql://主机名称:mysql服务端口号/数据库名称?参数=值&参数=值`
+  * `jdbc:mysql://localhost:3306/test`
+  * `jdbc:mysql://localhost:3306/test**?useUnicode=true&characterEncoding=utf8`（如果JDBC程序与服务器端的字符集不一致，会导致乱码，那么可以通过参数指定服务器端的字符集）
+  * `jdbc:mysql://localhost:3306/test?user=root&password=123456`
 * Oracle 9i 的连接 URL 编写方式：
-  * jdbc:oracle:thin:@主机名称:oracle服务端口号:数据库名称
-  * jdbc:oracle:thin:@localhost:1521:test
+  * `jdbc:oracle:thin:@主机名称:oracle服务端口号:数据库名称`
+  * `jdbc:oracle:thin:@localhost:1521:test`
 * SQLServer 的连接 URL 编写方式：
-  * jdbc:sqlserver://主机名称:sqlserver服务端口号:DatabaseName=数据库名称
-  * jdbc:sqlserver://localhost:1433:DatabaseName=test
+  * `jdbc:sqlserver://主机名称:sqlserver服务端口号:DatabaseName=数据库名称`
+  * `jdbc:sqlserver://localhost:1433:DatabaseName=test`
 
 ## 要素三：用户名和密码
 

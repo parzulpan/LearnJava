@@ -2,15 +2,15 @@
 
 ## 目录
 
-* [JDBC 概述](../JDBC/note/ch01/README.md)
-* [获取数据库连接](../JDBC/note/ch02/README.md)
-* [实现 CRUD 操作](../JDBC/note/ch03/README.md)
-* [操作 BLOB 类型字段](../JDBC/note/ch04/README.md)
-* [批量插入](../JDBC/note/ch05/README.md)
-* [数据库事务](../JDBC/note/ch06/README.md)
-* [数据库连接池](../JDBC/note/ch08/README.md)
-* [commons-dbutils](../JDBC/note/ch09/README.md)
-* [DAO 相关](../JDBC/note/ch07/README.md)
+* [JDBC 概述](note/ch01/README.md)
+* [获取数据库连接](note/ch02/README.md)
+* [实现 CRUD 操作](note/ch03/README.md)
+* [操作 BLOB 类型字段](note/ch04/README.md)
+* [批量插入](note/ch05/README.md)
+* [数据库事务](note/ch06/README.md)
+* [数据库连接池](note/ch08/README.md)
+* [commons-dbutils](note/ch09/README.md)
+* [DAO 相关](note/ch07/README.md)
 
 ## 总结
 
