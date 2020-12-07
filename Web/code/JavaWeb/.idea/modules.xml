@@ -6,6 +6,7 @@
       <module fileurl="file://$PROJECT_DIR$/HTML&amp;CSS/HTML&amp;CSS.iml" filepath="$PROJECT_DIR$/HTML&amp;CSS/HTML&amp;CSS.iml" />
       <module fileurl="file://$PROJECT_DIR$/JavaScript/JavaScript.iml" filepath="$PROJECT_DIR$/JavaScript/JavaScript.iml" />
       <module fileurl="file://$PROJECT_DIR$/JavaWeb.iml" filepath="$PROJECT_DIR$/JavaWeb.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Servlet/Servlet.iml" filepath="$PROJECT_DIR$/Servlet/Servlet.iml" />
       <module fileurl="file://$PROJECT_DIR$/XML/XML.iml" filepath="$PROJECT_DIR$/XML/XML.iml" />
       <module fileurl="file://$PROJECT_DIR$/jQuery/jQuery.iml" filepath="$PROJECT_DIR$/jQuery/jQuery.iml" />
     </modules>

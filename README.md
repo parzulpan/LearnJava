@@ -25,7 +25,7 @@ Start learning Java and related technology stack.
   * [jQuery 基础](Web/note/jQuery.md)
   * [XML 文件](Web/note/XML.md)
   * [Tomcat 使用](Web/note/Tomcat.md)
-  * Servlet 程序
+  * [Servlet 程序](Web/note/Servlet.md)
   * JSP 页面
   * EL 表达式
   * JSTL 标签库
@@ -35,7 +35,7 @@ Start learning Java and related technology stack.
   * JSON 文件
   * AJAX 请求
   * i18n 国际化
-  * 书城网站
+  * [书城网站](Web/note/Book.md)
 * Java 框架
   * Mybatis
   * Spring
