@@ -853,7 +853,7 @@ public class ForwardServlet2 extends HttpServlet {
 
 ### HttpServletResponse 类
 
-每次请求进来
+每次请求进来，Tomcat 服务器
 
 #### 请求重定向
 
