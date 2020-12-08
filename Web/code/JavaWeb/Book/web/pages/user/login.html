@@ -3,11 +3,44 @@
 <head>
 <meta charset="UTF-8">
 <title>购会员登录页面</title>
-<link type="text/css" rel="stylesheet" href="../../static/css/style.css" >
+	<!--写 base 标签，永远固定相对路径跳转的结果-->
+	<base href="http://localhost:8080/Book/">
+	<link type="text/css" rel="stylesheet" href="static/css/style.css" >
+	<script type="text/javascript" src="static/script/jquery.js"></script>
+	<script type="text/javascript">
+		$(function() {
+			$("#sub_btn").click(function () {
+				// 验证用户名：必须由字母，数字下划线组成，并且长度为 5 到 12 位
+				// 1. 获取用户名输入框的内容
+				let username = $("#username").val();
+				// 2. 创建正则表达式对象
+				let usernamePattern = /^\w{5,12}$/;
+				// 3. 使用 test 方法验证
+				if (!usernamePattern.test(username)) {
+					// 4. 提示用户
+					$("span.loginErrorMsg").text("用户名格式错误！");
+
+					return false;
+				}
+
+				// 验证密码：必须由字母，数字下划线组成，并且长度为 5 到 12 位
+				let password = $("#password").val();
+				let passwordPattern = /^\w{5,12}$/;
+				if (!passwordPattern.test(password)) {
+					$("span.loginErrorMsg").text("密码格式错误！");
+
+					return false;
+				}
+
+				// 验证成功，去掉提示信息
+				$("span.loginErrorMsg").text("");
+			})
+		})
+	</script>
 </head>
 <body>
 		<div id="login_header">
-			<img class="logo_img" alt="" src="../../static/img/logo.gif" >
+			<img class="logo_img" alt="" src="static/img/logo.png"  width="70" height="70">
 		</div>
 		
 			<div class="login_banner">
@@ -21,6 +54,7 @@
 						<div class="login_box">
 							<div class="tit">
 								<h1>购会员</h1>
+								<span class="loginErrorMsg"></span>
 								<a href="regist.html">立即注册</a>
 							</div>
 							<div class="msg_cont">
@@ -28,13 +62,17 @@
 								<span class="errorMsg">请输入用户名和密码</span>
 							</div>
 							<div class="form">
-								<form action="login_success.html">
+<!--								修改注册表单的提交地址和请求方式-->
+<!--								<form action="login_success.html">-->
+								<form action="loginServlet" method="post">
 									<label>用户名称：</label>
-									<input class="itxt" type="text" placeholder="请输入用户名" autocomplete="off" tabindex="1" name="username" />
+									<input class="itxt" type="text" placeholder="请输入用户名"
+										   autocomplete="off" tabindex="1" name="username" />
 									<br />
 									<br />
 									<label>用户密码：</label>
-									<input class="itxt" type="password" placeholder="请输入密码" autocomplete="off" tabindex="1" name="password" />
+									<input class="itxt" type="password" placeholder="请输入密码"
+										   autocomplete="off" tabindex="1" name="password" />
 									<br />
 									<br />
 									<input type="submit" value="登录" id="sub_btn" />

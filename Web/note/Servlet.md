@@ -300,7 +300,7 @@ public class HelloServlet3 extends HttpServlet {
 }
 ```
 
-### ServletConfig
+## ServletConfig
 
 Servlet 容器使用的 Servlet 配置对象，用于在初始化期间将信息传递给 Servlet。
 
@@ -330,7 +330,7 @@ public class HelloServlet implements Servlet {
 }
 ```
 
-### ServletContext
+## ServletContext
 
 **什么是 ServletContext**：
 
@@ -394,7 +394,7 @@ public class ContextServlet extends HttpServlet {
 }
 ```
 
-### HTTP
+## HTTP
 
 HTTP 协议是 `Hyper Text Transfer Protocol`（超文本传输协议）的缩写，是用于从万维网（World Wide Web）服务器传输超文本到本地浏览器的传送协议。它基于 `TCP/IP` 通信协议来传递数据。它的**特点**：
 
@@ -475,7 +475,7 @@ HTTP 协议是 `Hyper Text Transfer Protocol`（超文本传输协议）的缩�
   * `504 Gateway Time-out` 充当网关或代理的服务器，未及时从远端服务器获取请求
   * `505 HTTP Version not supported` 服务器不支持请求的 HTTP 协议的版本，无法完成处理
 
-### GET 请求
+## GET 请求
 
 **格式**：
 
@@ -500,7 +500,7 @@ Accept-Encoding: gzip, deflate, br  // 客户端可以接收的数据编码/压�
 Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7    // 客户端可以接收的语言类型
 ```
 
-### PUT 请求
+## PUT 请求
 
 **格式**：
 
@@ -602,7 +602,7 @@ Content-Length: 356 // 响应体的长度
 </html>
 ```
 
-### MIME 类型
+## MIME 类型
 
 MIME（Multipurpose Internet Mail Extensions，多功能 Internet 邮件扩充服务） 是 HTTP 协议中数据类型，它的格式是`“大类型/小类型”`，并与某一种文件的扩展名相对应。
 
@@ -621,7 +621,7 @@ MIME（Multipurpose Internet Mail Extensions，多功能 Internet 邮件扩充�
 * `application/x-gzip` GZIP 文件
 * `application/x-tar` TAR 文件
 
-### HttpServletRequest 类
+## HttpServletRequest 类
 
 每次只要有请求进入 Tomcat 服务器，Tomcat 服务器就会把请求过来的 HTTP 协议信息解析好封装到 Request 对象中，然后传递到 service 方法中。可以通过 HttpServletRequest 对象，获取到所有请求的信息。
 
@@ -685,7 +685,7 @@ public class ContextServlet extends HttpServlet {
 
 ```
 
-#### 获取请求参数
+### 获取请求参数
 
 ```html
 <!DOCTYPE html>
@@ -764,9 +764,9 @@ public class ParameterServlet extends HttpServlet {
 }
 ```
 
-#### 请求转发
+### 请求转发
 
-请求转发是指服务器收到请求后，从一个资源跳转到另一个资源的操作叫请求转发。
+请求转发，是指服务器收到请求后，从一个资源跳转到另一个资源的操作叫请求转发。
 
 以材料盖章转发为例：
 
@@ -851,16 +851,160 @@ public class ForwardServlet2 extends HttpServlet {
 * 可以转发到 WEB-INF 目录下；
 * 不可以访问工程以外的资源。
 
-### HttpServletResponse 类
+## HttpServletResponse 类
 
-每次请求进来，Tomcat 服务器
+每次请求进来，Tomcat 服务器都会创建一个 Response 对象传递给 Servlet 程序去使用，HttpServletRequest 表示请求过来的信息，HttpServletResponse 表示所有响应的信息，如果需要设置返回给客户端的信息，都可以通过 HttpServletResponse 对象来进行设置。
 
-#### 请求重定向
+往客户端回传数据需要用到输出流：
+
+* `getOutputStream() 字节流` 常用于下载（传递二进制数据）
+* `getWriter() 字符流` 常用于回传字符串
+* 注意：这两个流同时只能使用一个，使用了字节流，就不能再使用字符流，反之亦然
+
+```java
+package cn.parzulpan.servlet2;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+
+/**
+ * @Author : parzulpan
+ * @Time : 2020-12-08
+ * @Desc :
+ */
+
+@WebServlet(name = "ResponseIOServlet", urlPatterns = ("/responseIOServlet"))
+public class ResponseIOServlet extends HttpServlet {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    }
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // 解决乱码问题
+        // 方法1，不推荐使用
+        // 1. 设置服务器字符集
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Content-Type", "text/html; charset=UTF-8");
+
+        // 方法2，推荐使用
+        response.setContentType("text/html; charset=UTF-8");
+
+        // 往客户端回传字符串数据
+        PrintWriter writer = response.getWriter();
+        writer.write("response content! 往客户端回传字符串数据");
+    }
+}
+```
+
+### 请求重定向
 
 请求重定向，是指客户端给服务器发请求，然后服务器告诉客户端说，我给你一些地址，你去新地址访问（因为之前的地址可能已经被废弃）。
 
+```java
+package cn.parzulpan.servlet2;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+/**
+ * @Author : parzulpan
+ * @Time : 2020-12-08
+ * @Desc :
+ */
+
+@WebServlet(name = "ResponseServlet1", urlPatterns = ("/responseServlet1"))
+public class ResponseServlet1 extends HttpServlet {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+    }
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        System.out.println("see responseServlet1");
+
+        request.setAttribute("key1", "value1");
+
+        // 请求重定向的第一种方案
+        // 1. 设置响应状态码 302 ，表示重定向
+//        response.setStatus(302);
+        // 2. 设置响应头，说明新的地址在哪里
+//        response.setHeader("Location", "http://localhost:8080/Servlet/responseServlet2");
+
+        // 请求重定向的第二种方案，推荐使用
+        response.sendRedirect("http://localhost:8080/Servlet/responseServlet2");
+    }
+}
+
+```
+
+```java
+package cn.parzulpan.servlet2;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+/**
+ * @Author : parzulpan
+ * @Time : 2020-12-08
+ * @Desc :
+ */
+
+@WebServlet(name = "ResponseServlet2", urlPatterns = ("/responseServlet2"))
+public class ResponseServlet2 extends HttpServlet {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+    }
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        System.out.println(request.getAttribute("key1"));   // null，说明不共享 Request 域中数据
+        response.getWriter().write("responseServlet2 content!");
+    }
+}
+```
+
 **请求重定向的特点**：
 
-* 
+* 浏览器地址栏会发生变化
+* 两次请求
+* 不共享 Request 域中的数据
+* 不能访问 WEB-INF 下的资源
+* 可以访问工程外的资源
 
 ## 练习和总结
+
+---
+
+**谈谈对请求转发和请求重定向的理解？**
+
+请求转发，是指服务器收到请求后，从一个资源跳转到另一个资源的操作叫请求转发。
+
+请求重定向，是指客户端给服务器发请求，然后服务器告诉客户端说，我给你一些地址，你去新地址访问（因为之前的地址可能已经被废弃）。
+
+**请求转发的特点**：
+
+* 浏览器地址栏没有变化；
+* 它们是一次请求；
+* 它们共享 Request 域中的数据；
+* 可以转发到 WEB-INF 目录下；
+* 不可以访问工程以外的资源。
+
+**请求重定向的特点**：
+
+* 浏览器地址栏会发生变化
+* 两次请求
+* 不共享 Request 域中的数据
+* 不能访问 WEB-INF 下的资源
+* 可以访问工程外的资源
+
+---

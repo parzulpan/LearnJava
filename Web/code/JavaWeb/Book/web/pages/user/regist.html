@@ -3,14 +3,18 @@
 <head>
 <meta charset="UTF-8">
 	<title>购会员注册页面</title>
-	<link type="text/css" rel="stylesheet" href="../../static/css/style.css" >
+	<!--写 base 标签，永远固定相对路径跳转的结果-->
+	<base href="http://localhost:8080/Book/">
+
+	<!--修改 base 标签对页面中所有相对路径的影响-->
+	<link type="text/css" rel="stylesheet" href="static/css/style.css" >
 	<style type="text/css">
 		.login_form{
 			height:420px;
 			margin-top: 25px;
 		}
 	</style>
-	<script type="text/javascript" src="../../static/script/jquery.js"></script>
+	<script type="text/javascript" src="static/script/jquery.js"></script>
 	<script type="text/javascript">
 		$(function() {
 			$("#sub_btn").click(function () {
@@ -70,7 +74,7 @@
 </head>
 <body>
 		<div id="login_header">
-			<img class="logo_img" alt="" src="../../static/img/logo.gif" >
+			<img class="logo_img" alt="" src="static/img/logo.png" width="70" height="70" >
 		</div>
 		
 			<div class="login_banner">
@@ -87,7 +91,9 @@
 								<span class="errorMsg"></span>
 							</div>
 							<div class="form">
-								<form action="regist_success.html">
+<!--								修改注册表单的提交地址和请求方式-->
+<!--								<form action="regist_success.html">-->
+								<form action="registServlet" method="post">
 									<label>用户名称：</label>
 									<label for="username"></label><input class="itxt" type="text" placeholder="请输入用户名"
 																		 autocomplete="off" tabindex="1" name="username" id="username" />
@@ -109,8 +115,9 @@
 									<br />
 									<br />
 									<label>验证码：</label>
-									<label for="code"></label><input class="itxt" type="text" style="width: 150px;" id="code"/>
-									<img alt="" src="../../static/img/code.bmp" style="float: right; margin-right: 40px">									
+									<label for="code"></label><input class="itxt" type="text" style="width: 150px;"
+																	 name="code"  id="code"/>
+									<img alt="" src="static/img/code.bmp" style="float: right; margin-right: 40px">
 									<br />
 									<br />
 									<input type="submit" value="注册" id="sub_btn" />
