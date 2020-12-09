@@ -27,8 +27,8 @@ Start learning Java and related technology stack.
   * [Tomcat 使用](Web/note/Tomcat.md)
   * [Servlet 程序](Web/note/Servlet.md)
   * [JSP 页面](Web/note/JSP.md)
-  * EL 表达式
-  * JSTL 标签库
+  * [EL 表达式](Web/note/EL.md)
+  * [JSTL 标签库](Web/note/JSTL.md)
   * Cookie 技术
   * Session 会话
   * Filter 过滤器
