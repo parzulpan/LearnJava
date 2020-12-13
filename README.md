@@ -29,9 +29,8 @@ Start learning Java and related technology stack.
   * [JSP 页面](Web/note/JSP.md)
   * [EL 表达式](Web/note/EL.md)
   * [JSTL 标签库](Web/note/JSTL.md)
-  * Cookie 技术
-  * Session 会话
-  * Filter 过滤器
+  * [Cookie 技术 & Session 会话](Web/note/Cookie&Session.md)
+  * [Filter 过滤器](Web/note/Filter.md)
   * JSON 文件
   * AJAX 请求
   * i18n 国际化
