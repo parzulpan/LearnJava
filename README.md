@@ -31,9 +31,9 @@ Start learning Java and related technology stack.
   * [JSTL 标签库](Web/note/JSTL.md)
   * [Cookie 技术 & Session 会话](Web/note/Cookie&Session.md)
   * [Filter 过滤器](Web/note/Filter.md)
-  * JSON 文件
-  * AJAX 请求
-  * i18n 国际化
+  * [JSON 文件](Web/note/JSON.md)
+  * [AJAX 请求](Web/note/AJAX.md)
+  * [i18n 国际化](Web/note/i18n.md)
   * [书城网站](Web/note/Book.md)
 * Java 框架
   * Mybatis
