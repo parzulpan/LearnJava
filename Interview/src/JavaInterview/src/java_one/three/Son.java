@@ -14,21 +14,23 @@ public class Son extends Father{
     private static int j = method();
 
     static {
-        System.out.println("(6)");
+        System.out.print("(6)");
     }
     Son() {
-        System.out.println("(7)");
+        // super(); 写不写都存在，在子类构造器中一定会调用父类的构造器
+        System.out.print("(7)");
     }
     {
-        System.out.println("(8)");
+        System.out.print("(8)");
     }
-    private int test() {
-        System.out.println("(9)");
+    @Override
+    public int test() {
+        System.out.print("(9)");
         return 1;
     }
-    private static int method() {
+    public static int method() {
 
-        System.out.println("(10)");
+        System.out.print("(10)");
         return 1;
     }
 }
