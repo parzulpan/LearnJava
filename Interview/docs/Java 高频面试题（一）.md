@@ -451,7 +451,7 @@ public class Test {
 推荐阅读：
 
 * [【Java基础】面向对象下](https://www.cnblogs.com/parzulpan/p/14130192.html)
-* 《JVM 虚拟机规范》中的 "<clinit>" "<init>" "invokespecial 指令"
+* 《Java 虚拟机规范》中的 `"<clinit>"` `"<init>"` `"invokespecial 指令"`
 
 ## 方法的参数传递机制
 
@@ -697,44 +697,209 @@ Spring Bean 的生命周期分为创建和销毁两个过程：
 
 ## Spring 支持的常用数据库事务传播属性(行为)和事务隔离级别
 
+事务的传播行为：
 
+* 使用：`@Transactional(propagation = Propagation.REQUIRED)`
+
+* **REQUIRED** 如果当前没有事务，就新建一个事务，如果已经存在一个事务中，加入到这个事务中。**一般用于增删改操作**
+* **SUPPORTS** 支持当前事务，如果当前没有事务，就以非事务方式执行。**一般用于查操作**
+* MANDATORY 使用当前的事务，如果当前没有事务，就抛出异常
+* REQUERS_NEW 新建事务，如果当前在事务中，把当前事务挂起
+* NOT_SUPPORTED 以非事务方式执行操作，如果当前存在事务，就把当前事务挂起
+* NEVER 以非事务方式运行，如果当前存在事务，抛出异常
+* NESTED 如果当前存在事务，则在嵌套事务内执行。如果当前没有事务，则执行 REQUIRED 类似的操作
+
+事务的隔离级别：
+
+* `TRANSACTION_READ_UNCOMMITTED` **读未提交**：允许事务读取未被其他事务提交的变更，**出现** 脏读、不可重复读、幻读等问题。
+* `TRANSACTION_READ_COMMITTED` **读已提交**：只允许事务读取已经被其他事务提交的变更，**避免** 脏读问题，**出现** 不可重复读、幻读等问题。这是 Oracle 默认的事务隔离级别
+* `TRANSACTION_REPEATABLE_READ` **可重复读**：确保在同一个事务中多次读取同样记录的结果是一致的，**避免** 脏读、不可重复读问题，**出现** 幻读等问题。这是 MySQL 默认的事务隔离级别。
+* `TRANSACTION_SERIALIZABLE` **串行化**：确保事务可以从一个表中读取相同的行，在这个事务持续期间，禁止其他事务对该表进行增删改操作，**避免**上面所有问题。
 
 总结：
+
+* 事务的传播行为和隔离级别必须牢记于心。
 
 推荐阅读：
 
 * [【Spring】Spring 事务控制](https://www.cnblogs.com/parzulpan/p/14176323.html)
 * [【JDBC核心】数据库事务](https://www.cnblogs.com/parzulpan/p/14129976.html)
 
-
-
 ## SpringMVC 中如何个解决 POST 请求中文乱码问题，GET 请求又如何处理
 
+**对于 Post 请求（`form 标签 method=post`）**：解决的方法是在 `web.xml` 中配置一个编码过滤器
 
+```xml
+<web-app>
+
+  <!-- 配置解决中文乱码的过滤器 -->
+  <filter>
+    <filter-name>characterEncodingFilter</filter-name>
+    <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+    <!-- 设置过滤器中的属性值 -->
+    <init-param>
+      <param-name>encoding</param-name>
+      <param-value>UTF-8</param-value>
+    </init-param>
+  </filter>
+  <!-- 过滤所有请求 -->
+  <filter-mapping>
+    <filter-name>characterEncodingFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+</web-app>
+```
+
+**对于 Get 请求**：解决的方法是修改 Tomcat 的 `server.xml` 配置文件，添加 `<Connector URIEncoding="UTF-8"  useBodyEncodingForURI="true"/>`
+
+推荐阅读：
+
+* [请求参数乱码问题](https://www.cnblogs.com/parzulpan/p/14180698.html#%E8%AF%B7%E6%B1%82%E5%8F%82%E6%95%B0%E4%B9%B1%E7%A0%81%E9%97%AE%E9%A2%98)
 
 ## SpringMVC 的工作流程
 
+![SpringMVC 的工作流程](https://images.cnblogs.com/cnblogs_com/parzulpan/1905354/o_201223131544SpringMVCServlet%E6%B5%81%E7%A8%8B.png)
 
+总结：
+
+* SpringMVC 是基于组件执行流程，弄清楚每个组件的作用，过一遍流程即可。
+
+参考阅读：
+
+* [SpringMVC 的工作流程](https://www.cnblogs.com/parzulpan/p/14180698.html#%E5%85%A5%E9%97%A8%E6%A1%88%E4%BE%8B%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90)
 
 ## MyBatis 中当实体类中的属性名和表中的字段名不一样时该如何处理
 
+例如：
 
+**属性名：实体类 id name password**
+
+**字段名：数据库 id name pwd**
+
+mybatis 会根据数据库的字段名去找对应的实体类的属性名，它会将所有列名转换为小写，然后去找实体类中对应的 set 方法 ，set 方法后面的字段就对应数据库的字段名；如果不一样就会返回 null。
+
+基本上有三种方式解决：
+
+* 修改 set 方法名字，不推荐使用
+* 给 sql 语句取别名，字段少时推荐使用
+* xml 配置文件设置结果集映射 ResultMap
 
 ## Linux 常用的服务类相关命令
 
+**对于 CentOS6**：
 
+* 注册在系统中的标准化程序
+* 有方便统一的管理方式
+  * `service 服务名 start`
+  * `service 服务名 stop`
+  * `service 服务名 restart`
+  * `service 服务名 reload`
+  * `service 服务名 status`
+* 查看服务的方法 `/etc/init.d/服务名`
+* 查看服务的命令 `chkconfig --list|grep xxx`
+* 通过 `chkconfig` 命令设置自启动
+  * `chkconfig --level 5 服务名 on/off`
+
+**对于 CentOS7**：
+
+* 注册在系统中的标准化程序
+* 有方便统一的管理方式
+  * `systemctl start 服务名(xxxx.service)`
+  * `systemctl restart 服务名(xxxx.service)`
+  * `systemctl stop 服务名(xxxx.service)`
+  * `systemctl reload 服务名(xxxx.service)`
+  * `systemctl status 服务名(xxxx.service)`
+* 查看服务的方法 `/usr/lib/systemd/system`
+* 查看服务的命令 `systemctl list-unit-files` `systemctl --type service`
+* 通过 `systemctl` 命令设置自启动
+  * `systemctl enable/disable 服务名`
 
 ## Git 常用的分支相关命令
 
+* 查看分支：
 
+  ```shell
+  # 查看本地分支
+  $ git branch
+  # 查看远程分支
+  $ git branch -r
+  # 查看本地、服务器所有分支
+  $ git branch -a
+  # 显示本地分支和服务器分支的映射关系
+  $ git branch -vv
+  ```
+
+* 创建分支
+
+  ```shell
+  # 创建本地分支，新分支创建后不会自动切换为当前分支
+  $ git branch [branch name]
+  ```
+
+* 创建分支后切换到新分支
+
+  ```shell
+  # 建立分支后切换到新分支
+  $ git checkout -b [branch name]
+  ```
+
+* 切换到指定分支
+
+  ```shell
+  # 切换到指定分支
+  $ git checkout [branch name]
+  ```
+
+* 本地分支关联到远程分支
+
+  ```shell
+  # 本地分支建立，与远程分支同步之后，就可以直接使用 git pull 命令了
+  $ git branch --set-upstream-to=origin/<远端branch_name> <本地branch_name>
+  # 举例 将本地 dev 分支关联到远程 dev 分支
+  $ git branch --set-upstream-to=origin/dev dev
+  ```
+
+* 合并分支
+
+  ```shell
+  # 合并分支,将名称为[name]的分支与当前分支合并
+  $ git merge [name]
+  ```
+
+* 删除分支
+
+  ```shell
+  # 删除远程分支
+  $ git push origin --delete [branch name]
+  # 删除本地分支(-d 删除已经参与了合并的分支，对于未有合并的分支是无法删除的，如果想强制删除一个分支，可以使用 -D 选项） 
+  $ git branch -d [branch name]
+  ```
+
+* 显示分支和提交
+
+  ```shell
+  # 显示分支和提交记录
+  $ git show-branch
+  ```
 
 ## Redis 持久化
 
+RDB 和 AOF 的优缺点，以及使用建议。
 
+总结：
 
-## MySQL 什么时候创建索引
+推荐阅读：
 
+* [【Redis3.0.x】持久化](https://www.cnblogs.com/parzulpan/p/14215141.html)
 
+## MySQL 什么时候适合创建索引
+
+总结：
+
+推荐阅读：
+
+* [【MySQL 高级】索引优化分析](https://www.cnblogs.com/parzulpan/p/14215392.html)
 
 ## JVM 的垃圾回收机制
 
@@ -748,19 +913,42 @@ Spring Bean 的生命周期分为创建和销毁两个过程：
 
 
 
+推荐阅读：
+
+* [MQ 的应用场景](https://www.cnblogs.com/parzulpan/p/14223189.html#%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF)
+
 ## ES 和 Solr 的异同
 
+总结：
 
+* 当单纯的对已有数据进行搜索时，Solr 更快
+* 当实时建立索引时, Solr 会产生 io 阻塞，查询性能较差，Elasticsearch 具有明显的优势
+* 随着数据量的增加，Solr 的搜索效率会变得更低，而 Elasticsearch 却没有明显的变化
+* Solr 的架构不适合实时搜索的应用，Solr 利用 Zookeeper 进行分布式管理，而 Elasticsearch 自身带有分布式系统关联功能，Solr 本质就是一个 动态 web 项目（Tomcat）
+* Solr 支持更多格式的数据，而 Elasticsearch 仅支持 json 文件格式
+* Solr 在传统的搜索应用中表现好于 Elasticsearch，但在处理实时搜索应用时效率明显低于 Elasticsearch
+* Solr 是传统搜索应用的有力解决方案，但 Elasticsearch 更适用于新兴的实时搜索应用
 
 ## 设计实现单点登录功能
+
+单点登录：分布式系统中，一处登录多处使用。
 
 
 
 ## 设计实现购物车功能
 
+至少需要考虑以下两个问题：
 
-
-
+* 购物车和用户的关系？
+  * 一个用户必须对应一个购物车
+  * 单点登录一定在购物车功能之前
+* 跟购物车相关的操作的有那些？
+  * 添加购物车
+    * 用户未登录状态：将数据保存到非关系型数据库或者 Cookie 中
+    * 用户已登录状态：将数据保存到数据库（关系型和非关系型）中
+  * 展示购物车
+    * 用户未登录状态：直接从 Cookie 中取得数据展示
+    * 用户已登录状态：从 数据库 和 Cookie 中取得数据展示
 
 ## 总结
 
