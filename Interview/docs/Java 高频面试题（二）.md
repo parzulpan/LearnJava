@@ -811,19 +811,475 @@ public class ContainerNotSafeDemo {
 
 * [【Java基础】集合](https://www.cnblogs.com/parzulpan/p/14131679.html)
 
-### 谈谈对公平锁、非公平锁、可重入锁、递归锁、自旋锁的理解？请编写一个自旋锁 demo？
+
+
+### 谈谈对 ConcurrentHashMap 的理解？
+
+
+
+
+
+### 谈谈对公平锁、非公平锁、可重入锁/递归锁、自旋锁的理解？请编写一个自旋锁 demo？
+
+#### 公平锁和非公平锁
+
+**概念**：
+
+* 所谓**公平锁**，即多个线程按照申请锁的顺序来获取锁，类似排队，先到先得。
+
+* 所谓**非公平锁**，即多个线程抢夺锁，它会导致优先级反转和饥饿现象。
+
+**区别**：
+
+* 公平锁在获取锁时会先查看此锁维护的**等待队列**，**为空**或者当前线程时等待队列的**队首**，则直接占有锁，否则插入到等待队列，按照先进先出的原则。
+* 非公平锁会直接先尝试占有锁，失败则采用公平锁方式。它的优点是**吞吐量**比公平锁更大。
+
+`synchronized` 和 `juc.ReentrantLock` 默认都是非公平锁，ReentrantLock 在构造的时候传入 `true` 则是公平锁。
+
+#### 可重入锁/递归锁
+
+**可重入锁**又称为**递归锁**，即同一个线程在**外层方法**获得锁时，进入**内层方法**会自动获取锁。也就是说，线程可以进入任何一个它已经拥有锁的代码块。比如有了家门口的锁，像卧室、书房、厨房等就可以自由进出了。
+
+可重入锁可以**避免死锁**的问题。
+
+`synchronized` 和 `juc.ReentrantLock` 是比较典型的可重入锁。
+
+```java
+package java_two;
+
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+/**
+ * @author parzulpan
+ * @version 1.0
+ * @date 2021-05
+ * @project JavaInterview
+ * @package java_two
+ * @desc 可重入锁
+ */
+
+public class ReentrantLockDemo {
+    public static void main(String[] args) {
+//        runInfo();
+        runInfo2();
+    }
+
+    public static void runInfo() {
+        Info info = new Info();
+        new Thread(() -> info.getInfo(), "t1").start();
+        new Thread(() -> info.getInfo(), "t2").start();
+    }
+
+    public static void runInfo2() {
+        Info2 info2 = new Info2();
+        new Thread(info2, "t3").start();
+        new Thread(info2, "t4").start();
+    }
+}
+
+class Info {
+    public synchronized void getInfo() {
+        System.out.println(Thread.currentThread().getName() + " invoked getInfo()");
+        getInfoName();
+    }
+
+    public synchronized void getInfoName() {
+        System.out.println(Thread.currentThread().getName() + " invoked getInfoName()");
+    }
+}
+
+class Info2 implements Runnable {
+    Lock lock = new ReentrantLock();
+
+    public void getInfo() {
+        lock.lock();
+        try {
+            System.out.println(Thread.currentThread().getName() + " invoked getInfo()");
+            getInfoName();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void getInfoName() {
+        lock.lock();
+        try {
+            System.out.println(Thread.currentThread().getName() + " invoked getInfoName()");
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public void run() {
+        getInfo();
+    }
+}
+```
+
+值得注意的是，锁与锁之间要讲究配对，加了几把锁，最后就得解开几把锁。下面的代码编译和运行都没有任何问题，但锁的数量不匹配会导致死循环。
+
+```java
+lock.lock();
+lock.lock();
+try{
+    someAction();
+}finally{
+    lock.unlock();
+}
+```
+
+#### 自旋锁
+
+所谓自旋锁，即在尝试获取锁的线程时不会立即阻塞，而是采用**循环的方式去尝试获取**。自己在哪儿一致循环获取，就好像自己在旋转一样。它的优点是**减少线程切换的上下文开销**，缺点是**消耗 CPU**。CAS 底层 的 `getAndAddInt` 就是自旋锁的思想，同时还存在 ABA 问题。
+
+```java
+package java_two;
+
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
+/**
+ * @author parzulpan
+ * @version 1.0
+ * @date 2021-05
+ * @project JavaInterview
+ * @package java_two
+ * @desc 自旋锁
+ */
+
+public class SpinLockDemo {
+    /** 原子引用线程 */
+    AtomicReference<Thread> atomicReference = new AtomicReference<>();
+
+    public static void main(String[] args) {
+        SpinLockDemo spinLockDemo = new SpinLockDemo();
+
+        // 启动 t1 线程，开始操作
+        new Thread(() -> {
+            // 开始占有锁
+            spinLockDemo.myLock();
+            try {
+                TimeUnit.SECONDS.sleep(5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            // 开始释放锁
+            spinLockDemo.myUnLock();
+
+        }, "t1").start();
+
+        // 让 main 线程暂停1秒，使得 t1 线程先执行
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // 1 秒后，启动 t2 线程，开始占用这个锁
+        new Thread(() -> {
+            // 开始占有锁
+            spinLockDemo.myLock();
+            // 开始释放锁
+            spinLockDemo.myUnLock();
+        }, "t2").start();
+    }
+
+    public void myLock() {
+        // 获取当前进来的线程
+        Thread thread = Thread.currentThread();
+        System.out.println(thread.getName() + " come in");
+        while (!atomicReference.compareAndSet(null, thread)) {
+            // 开始自旋，期望值是 null，更新值是当前线程，如果是 null，则更新为当前线程，否则自旋
+        }
+        System.out.println(thread.getName() + " come out");
+    }
+
+    public void myUnLock() {
+        // 获取当前进来的线程
+        Thread thread = Thread.currentThread();
+        // 使用完后，将其原子引用变为 null
+        atomicReference.compareAndSet(thread, null);
+        System.out.println(thread.getName() + " invoked myUnLock()");
+    }
+}
+```
+
+#### 读写锁/共享独占锁
+
+读锁是共享的，写锁是独占的。
+
+共享锁就是一个锁能被多个线程所持有。
+
+独占锁就是一个锁只能被一个线程所持有。`synchronized` 和 `juc.ReentrantLock` 都是独占锁。
+
+但是有的时候，需要读写分离，那么就要引入读写锁，即 `juc.ReentrantReadWriteLock`，其读锁是共享锁，其写锁是独占锁。以下例子，就避免了写被打断，但实现了多个线程同时读。
+
+```java
+package java_two;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+/**
+ * @author parzulpan
+ * @version 1.0
+ * @date 2021-05
+ * @project JavaInterview
+ * @package java_two
+ * @desc 读写锁
+ */
+
+public class ReentrantReadWriteLockDemo {
+    public static void main(String[] args) {
+        MyCache myCache = new MyCache();
+        // 线程操作资源类，5 个线程写
+        for (int i = 0; i < 5; i++) {
+            final int tempInt = i;
+            new Thread(() -> {
+                myCache.put(tempInt + "", tempInt +  "");
+            }, String.valueOf(i)).start();
+        }
+
+        // 线程操作资源类， 5 个线程读
+        for (int i = 0; i < 5; i++) {
+            final int tempInt = i;
+            new Thread(() -> {
+                myCache.get(tempInt + "");
+            }, String.valueOf(i)).start();
+        }
+    }
+}
+
+class MyCache {
+    private volatile Map<String, Object> map = new HashMap<>();
+
+    /** 可以看到有些线程读取到 null，可用 ReentrantReadWriteLock 解决 */
+    private ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+
+    public void put(String k, Object v) {
+        // 创建一个写锁
+        lock.writeLock().lock();
+        try {
+            System.out.println(Thread.currentThread().getName() + " 正在写入");
+            try {
+                // 模拟网络拥堵，延迟 0.3s
+                TimeUnit.MILLISECONDS.sleep(300);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            map.put(k, v);
+            System.out.println(Thread.currentThread().getName() + " 写入完成");
+        } finally {
+            lock.writeLock().unlock();
+        }
+
+    }
+
+    public void get(String k) {
+        // 创建一个读锁
+        lock.readLock().lock();
+        try {
+            System.out.println(Thread.currentThread().getName() + " 正在读取");
+            try {
+                // 模拟网络拥堵，延迟 0.3s
+                TimeUnit.MILLISECONDS.sleep(300);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            Object o = map.get(k);
+            System.out.println(Thread.currentThread().getName() + " 读取完成 " + o);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+}
+```
+
+#### synchronized 和 Lock 的区别
+
+主要有以下几个方面的区别：
+
+* **原始构成**：sync 是关键字，属于 JVM 层面的，而 Lock 是一个接口，属于 JDK API 层面的
+* **使用方法**：sync 不需要手动释放锁，而 Lock 需要 在 finally 中手动释放
+* **是否可中断**：sync 不可中断，除非抛出异常或者正常运行完成，而 Lock 通过 设置超时时间 或 调用 `interrupt()` 可被中断
+* **是否为公平锁**：sync 只能为非公平锁，而 Lock 既可以为 公平锁，又可以为非公平锁
+* **是否可绑定多个条件**：sync 不能，它只能随机唤醒，而 Lock 可以通过 Condition 来绑定多个条件，进行精确唤醒
 
 
 
 ### 谈谈对 CountDownLatch、CyclicBarrier、Semaphore 的理解？
 
+#### CountDownLatch
+
+`CountDownLatch` 内部维护了一个**计数器**，只有当**计数器等于 0** 时，某些线程才会停止阻塞，开始执行。
+
+它主要有两个方法：
+
+* `countDown()` 让计数器减 1
+* `await()` 让线程阻塞
+* 当**计数器等于 0** 时，阻塞线程会自动唤醒
+
+```java
+package java_two;
+
+import java.util.concurrent.*;
+
+/**
+ * @author parzulpan
+ * @version 1.0
+ * @date 2021-05
+ * @project JavaInterview
+ * @package java_two
+ * @desc CountDownLatch 教室关门例子
+ */
+
+public class CountDownLatchDemo {
+    private static ExecutorService threadPoolExecutor = new ThreadPoolExecutor(6, 200, 10L, TimeUnit.SECONDS, new LinkedBlockingDeque<Runnable>(1000), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
+
+    public static void main(String[] args) throws InterruptedException {
+        CountDownLatch countDownLatch = new CountDownLatch(6);
+        for (int i = 0; i < 6; i++) {
+            threadPoolExecutor.execute(() -> {
+                System.out.println("ThreadName: " + Thread.currentThread().getName() + "，离开教室");
+                countDownLatch.countDown();
+            });
+        }
+        countDownLatch.await();
+        System.out.println("ThreadName: " + Thread.currentThread().getName() + "，学生全部离开，已关闭教室");
+        threadPoolExecutor.shutdown();
+    }
+}
+```
+
+
+
+#### CyclicBarrier
+
+`CyclicBarrier` 与 `CountDownLatch` 相反，只有当**计数器等于 指定值** 时，某些线程才会停止阻塞，开始执行。
+
+`CyclicBarrier` 与 `CountDownLatch` 的主要区别是，前者可以复用，而后者不行。
+
+它主要有一个方法：
+
+* `await()` 线程进入屏障
+
+```java
+package java_two;
+
+import java.util.concurrent.*;
+
+/**
+ * @author parzulpan
+ * @version 1.0
+ * @date 2021-05
+ * @project JavaInterview
+ * @package java_two
+ * @desc  CyclicBarrier 召唤神龙例子
+ */
+
+public class CyclicBarrierDemo {
+    private static ExecutorService threadPoolExecutor = new ThreadPoolExecutor(7, 200, 10L, TimeUnit.SECONDS, new LinkedBlockingDeque<Runnable>(1000), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
+
+    public static void main(String[] args) {
+        // 定义一个循环屏障，参数1 为需要累加的值，参数2 为需要执行的方法
+        CyclicBarrier cyclicBarrier = new CyclicBarrier(7, () -> {
+            System.out.println("召唤神龙");
+        });
+        for (int i = 0; i < 7; i++) {
+            final int tempInt = i;
+            threadPoolExecutor.execute(() -> {
+                System.out.println("ThreadName: " + Thread.currentThread().getName() + "，收集到第 " + tempInt + " 颗龙珠");
+                try {
+                    // 先到的被阻塞，等全部线程完成后，才能执行方法
+                    cyclicBarrier.await();
+                } catch (InterruptedException | BrokenBarrierException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+        threadPoolExecutor.shutdown();
+    }
+}
+```
+
+#### Semaphore
+
+信号量主要用于两个目的，一个是用于**多个共享资源的互斥使用**，另一个用于**并发线程数的控制**。
+
+常规的锁（例如 `synchronied` 和 `Lock`）在任何时刻都只允许一个任务访问一项资源，而 `Semaphore` 运行 n 个任务同时访问一项资源。
+
+但 `CountDownLatch` 不能复用，而 `Semaphore` 完美的解决了这个问题，
+
+它主要有两个方法：
+
+* accquire() 抢占资源/锁
+* release() 释放资源/锁
+
+```java
+package java_two;
+
+import java.util.concurrent.*;
+
+/**
+ * @author parzulpan
+ * @version 1.0
+ * @date 2021-05
+ * @project JavaInterview
+ * @package java_two
+ * @desc Semaphore 抢车位例子
+ */
+
+public class SemaphoreDemo {
+    private static ExecutorService threadPoolExecutor = new ThreadPoolExecutor(6, 200, 10L, TimeUnit.SECONDS, new LinkedBlockingDeque<Runnable>(1000), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
+
+    public static void main(String[] args) {
+        // 初始化一个信号量为 3，非公平锁，模拟3个停车位
+        Semaphore semaphore = new Semaphore(3, false);
+        for (int i = 0; i < 6; i++) {
+            threadPoolExecutor.execute(() -> {
+                try {
+                    semaphore.acquire();
+                    System.out.println("ThreadName: " + Thread.currentThread().getName() + "，抢到车位 ");
+                    // 停车 3s
+                    TimeUnit.SECONDS.sleep(3);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }finally {
+                    System.out.println("ThreadName: " + Thread.currentThread().getName() + "，离开车位 ");
+                    semaphore.release();
+                }
+            });
+        }
+        threadPoolExecutor.shutdown();
+    }
+}
+```
+
 
 
 ### 阻塞队列知道吗？谈谈其理解？
 
+我们知道**线程池的工作原理**：
+
+线程池创建，准备好 corePoolSize 数量的核心线程，准备接受任务
+
+* 如果核心线程已满，就会将任务放入**阻塞队列**中，空闲的核心线程就会自己去阻塞队列中获取任务
+* 如果**阻塞队列**已满，就会直接开启新线程执行，但是最大不超过 maximumPoolSize 数
+* 如果超过 maximumPoolSize 数，就会使用拒绝策略拒绝任务，当执行完成后，在指定的 keepAliveTime 时间以后释放 maximumPoolSize - corePoolSize 这些数量的线程
 
 
-### 线程池用过吗？谈谈对 ThreadPoolExecutor 的理解？生产过程中如何合理的设置线程池参数？
+
+
+
+### 线程池用过吗？谈谈对 ThreadPoolExecutor 的理解？
+
+
+
+### 生产过程中如何合理的设置线程池参数？拒绝策略怎么配置？
 
 
 
