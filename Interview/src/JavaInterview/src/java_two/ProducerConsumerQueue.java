@@ -41,6 +41,7 @@ class Resource {
 
     public Resource(BlockingQueue<String> blockingQueue) {
         this.blockingQueue = blockingQueue;
+        System.out.println(blockingQueue.getClass().getName());
     }
 
     public void increment() {
