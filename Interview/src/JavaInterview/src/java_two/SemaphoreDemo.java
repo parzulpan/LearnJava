@@ -12,13 +12,13 @@ import java.util.concurrent.*;
  */
 
 public class SemaphoreDemo {
-    private static ExecutorService threadPoolExecutor = new ThreadPoolExecutor(6, 200, 10L, TimeUnit.SECONDS, new LinkedBlockingDeque<Runnable>(1000), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
+    private static final ExecutorService THREAD_POOL_EXECUTOR = new ThreadPoolExecutor(6, 200, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(1000), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
 
     public static void main(String[] args) {
         // 初始化一个信号量为 3，非公平锁，模拟3个停车位
         Semaphore semaphore = new Semaphore(3, false);
         for (int i = 0; i < 6; i++) {
-            threadPoolExecutor.execute(() -> {
+            THREAD_POOL_EXECUTOR.execute(() -> {
                 try {
                     semaphore.acquire();
                     System.out.println("ThreadName: " + Thread.currentThread().getName() + "，抢到车位 ");
@@ -32,6 +32,6 @@ public class SemaphoreDemo {
                 }
             });
         }
-        threadPoolExecutor.shutdown();
+        THREAD_POOL_EXECUTOR.shutdown();
     }
 }

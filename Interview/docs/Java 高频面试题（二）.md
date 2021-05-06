@@ -1138,7 +1138,7 @@ import java.util.concurrent.*;
  */
 
 public class CountDownLatchDemo {
-    private static ExecutorService threadPoolExecutor = new ThreadPoolExecutor(6, 200, 10L, TimeUnit.SECONDS, new LinkedBlockingDeque<Runnable>(1000), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
+    private static ExecutorService threadPoolExecutor = new ThreadPoolExecutor(6, 200, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1000), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
 
     public static void main(String[] args) throws InterruptedException {
         CountDownLatch countDownLatch = new CountDownLatch(6);
@@ -1155,11 +1155,9 @@ public class CountDownLatchDemo {
 }
 ```
 
-
-
 #### CyclicBarrier
 
-`CyclicBarrier` 与 `CountDownLatch` 相反，只有当**计数器等于 指定值** 时，某些线程才会停止阻塞，开始执行。
+`CyclicBarrier` 与 `CountDownLatch` 相反，只有当 **计数器 等于 指定值** 时，某些线程才会停止阻塞，开始执行。
 
 `CyclicBarrier` 与 `CountDownLatch` 的主要区别是，前者可以复用，而后者不行。
 
@@ -1182,7 +1180,7 @@ import java.util.concurrent.*;
  */
 
 public class CyclicBarrierDemo {
-    private static ExecutorService threadPoolExecutor = new ThreadPoolExecutor(7, 200, 10L, TimeUnit.SECONDS, new LinkedBlockingDeque<Runnable>(1000), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
+    private static ExecutorService threadPoolExecutor = new ThreadPoolExecutor(7, 200, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1000), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
 
     public static void main(String[] args) {
         // 定义一个循环屏障，参数1 为需要累加的值，参数2 为需要执行的方法
@@ -1210,9 +1208,11 @@ public class CyclicBarrierDemo {
 
 信号量主要用于两个目的，一个是用于**多个共享资源的互斥使用**，另一个用于**并发线程数的控制**。
 
-常规的锁（例如 `synchronied` 和 `Lock`）在任何时刻都只允许一个任务访问一项资源，而 `Semaphore` 运行 n 个任务同时访问一项资源。
+生产过程中，是不建议使用 Executors 中的静态方法来创建线程池的，因为会产生 OOM，如果非得使用，可以通过使用 `Semaphore` 对任务的执行进行限流。
 
-但 `CountDownLatch` 不能复用，而 `Semaphore` 完美的解决了这个问题，
+常规的锁（例如 `synchronied` 和 `Lock`）在任何时刻都只允许 1 个任务访问一项资源，而 `Semaphore` 允许 n 个任务同时访问一项资源。
+
+并且 `CountDownLatch` 不能复用，而 `Semaphore` 完美的解决了这个问题，
 
 它主要有两个方法：
 
@@ -1234,7 +1234,7 @@ import java.util.concurrent.*;
  */
 
 public class SemaphoreDemo {
-    private static ExecutorService threadPoolExecutor = new ThreadPoolExecutor(6, 200, 10L, TimeUnit.SECONDS, new LinkedBlockingDeque<Runnable>(1000), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
+    private static ExecutorService threadPoolExecutor = new ThreadPoolExecutor(6, 200, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1000), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
 
     public static void main(String[] args) {
         // 初始化一个信号量为 3，非公平锁，模拟3个停车位
@@ -1271,19 +1271,527 @@ public class SemaphoreDemo {
 * 如果**阻塞队列**已满，就会直接开启新线程执行，但是最大不超过 maximumPoolSize 数
 * 如果超过 maximumPoolSize 数，就会使用拒绝策略拒绝任务，当执行完成后，在指定的 keepAliveTime 时间以后释放 maximumPoolSize - corePoolSize 这些数量的线程
 
+#### 基本概念
 
+当阻塞队列为空时，获取（take）操作是阻塞的；当阻塞队列为满时，添加（put）操作时阻塞的。
+
+在多线程中，所谓阻塞，指在某些情况下挂起线程（即阻塞），一旦条件满足，被挂起的线程又会自动被唤醒。
+
+使用 BlockingQueue 阻塞队列不用手动控制什么时候该被阻塞，什么时候该被唤醒，进而简化了操作。
+
+#### 种类分析
+
+关系：
+
+![阻塞队列架构和种类](https://images.cnblogs.com/cnblogs_com/parzulpan/1970814/o_210506060738%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97%E6%9E%B6%E6%9E%84%E5%92%8C%E7%A7%8D%E7%B1%BB.png)
+
+`Collection`→`Queue`→`BlockingQueue`→七个阻塞队列实现类，具体为：
+
+| 类名                    | 作用                                                         |
+| ----------------------- | ------------------------------------------------------------ |
+| **ArrayBlockingQueue**  | 由**数组**构成的**有界**阻塞队列                             |
+| **LinkedBlockingQueue** | 由**链表**构成的**有界**阻塞队列，但大小默认值为 **`Integer.MAX_VALUE`** |
+| PriorityBlockingQueue   | 支持优先级排序的无界阻塞队列                                 |
+| DelayQueue              | 支持优先级延迟的无界阻塞队列                                 |
+| **SynchronousQueue**    | 不存储元素的阻塞队列，即单个元素的阻塞队列                   |
+| LinkedTransferQueue     | 由链表构成的无界阻塞队列                                     |
+| LinkedBlockingDeque     | 由链表构成的双向阻塞队列                                     |
+
+**BlockingQueue 的核心方法**：
+
+| 方法类型  | 抛出异常  | 返回布尔   | 阻塞     | 超时                                 |
+| --------- | --------- | ---------- | -------- | ------------------------------------ |
+| 插入      | add(E e)  | offer(E e) | put(E e) | offer(E e, Time time, TimeUnit unit) |
+| 移除      | remove()  | poll()     | take()   | poll(Time time, Unit unit)           |
+| 检查/队首 | element() | peek()     | 无       | 无                                   |
+
+方法类型解释：
+
+* 抛出异常：指阻塞队列满时，再次插入会抛出 `IllegalStateException：Queue full`  异常；阻塞队列空时，再次移除会抛出 `NoSuchException` 异常；
+* 返回布尔：指插入成功返回 true，失败返回 false；移除成功返回队列元素，移除失败返回空；
+* 阻塞：指阻塞队列满时，生产者继续往队列里 put 元素，队列会一直阻塞生产者线程，直到队列可用；阻塞队列空时，消费者线程试图从队列里 take 元素，队列会一直阻塞消费者线程，直到队列可用；
+* 超时：指阻塞队列满时，队里会阻塞生产者线程一定时间，超过限时后生产者线程会退出；
+
+```java
+package java_two;
+
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * @author parzulpan
+ * @version 1.0
+ * @date 2021-05
+ * @project JavaInterview
+ * @package java_two
+ * @desc BlockingQueue
+ */
+
+public class BlockingQueueDemo {
+    static BlockingQueue<String> blockingQueue = new ArrayBlockingQueue<>(3);
+
+    public static void main(String[] args) {
+//        test1();
+//        test2();
+        try {
+            test3();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+//        try {
+//            test4();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+    }
+
+    /** 抛出异常 */
+    public static void test1() {
+        System.out.println(blockingQueue.add("a"));
+        System.out.println(blockingQueue.add("b"));
+        System.out.println(blockingQueue.add("c"));
+
+        try {
+            // java.lang.IllegalStateException: Queue full
+            System.out.println(blockingQueue.add("x"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        System.out.println(blockingQueue.element());
+
+        System.out.println(blockingQueue.remove());
+        System.out.println(blockingQueue.remove());
+        System.out.println(blockingQueue.remove());
+
+        try {
+            // java.util.NoSuchElementException
+            System.out.println(blockingQueue.remove());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            // java.util.NoSuchElementException
+            System.out.println(blockingQueue.element());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /** 返回布尔 */
+    public static void test2() {
+        System.out.println(blockingQueue.offer("a"));
+        System.out.println(blockingQueue.offer("b"));
+        System.out.println(blockingQueue.offer("c"));
+
+        System.out.println(blockingQueue.offer("d"));
+
+        System.out.println(blockingQueue.peek());
+
+        System.out.println(blockingQueue.poll());
+        System.out.println(blockingQueue.poll());
+        System.out.println(blockingQueue.poll());
+
+        System.out.println(blockingQueue.poll());
+    }
+
+    /** 阻塞 */
+    public static void test3() throws InterruptedException {
+        new Thread(() -> {
+            try {
+                blockingQueue.put("a");
+                blockingQueue.put("b");
+                blockingQueue.put("c");
+
+                System.out.println(Thread.currentThread().getName() + " start...");
+                // 将会阻塞，直到 take
+                blockingQueue.put("d");
+                System.out.println(Thread.currentThread().getName() + " end...");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }, "t1").start();
+
+        TimeUnit.SECONDS.sleep(2);
+
+        try {
+            blockingQueue.take();
+            blockingQueue.take();
+            blockingQueue.take();
+            blockingQueue.take();
+
+            System.out.println(Thread.currentThread().getName() + " start...");
+            // 将会阻塞
+            blockingQueue.take();
+            System.out.println(Thread.currentThread().getName() + " end...");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    /** 超时 */
+    public static void test4() throws InterruptedException {
+        System.out.println(blockingQueue.offer("a", 2L, TimeUnit.SECONDS));
+        System.out.println(blockingQueue.offer("b", 2L, TimeUnit.SECONDS));
+        System.out.println(blockingQueue.offer("c", 2L, TimeUnit.SECONDS));
+
+        System.out.println(blockingQueue.offer("d", 2L, TimeUnit.SECONDS));
+
+        System.out.println(blockingQueue.peek());
+
+        System.out.println(blockingQueue.poll(2L, TimeUnit.SECONDS));
+        System.out.println(blockingQueue.poll(2L, TimeUnit.SECONDS));
+        System.out.println(blockingQueue.poll(2L, TimeUnit.SECONDS));
+
+        System.out.println(blockingQueue.poll(2L, TimeUnit.SECONDS));
+    }
+
+}
+```
+
+
+
+#### 实际应用
+
+##### 生产者消费者模式 - 传统版本
+
+传统模式使用`Lock`来进行操作，需要手动加锁、解锁
+
+```java
+package java_two;
+
+import java.util.concurrent.*;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+/**
+ * @author parzulpan
+ * @version 1.0
+ * @date 2021-05
+ * @project JavaInterview
+ * @package java_two
+ * @desc 生产者消费者模式-传统版本
+ */
+
+public class ProducerConsumerTraditional {
+    private static final ExecutorService THREAD_POOL_EXECUTOR = new ThreadPoolExecutor(2, 10, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(1000), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
+    public static void main(String[] args) {
+        Share share = new Share();
+
+        // 生产
+        THREAD_POOL_EXECUTOR.execute(() -> {
+            for (int i = 0; i < 5; i++) {
+                share.increment();
+            }
+        });
+
+        // 消费
+        THREAD_POOL_EXECUTOR.execute(() -> {
+            for (int i = 0; i < 5; i++) {
+                share.decrement();
+            }
+        });
+
+        THREAD_POOL_EXECUTOR.shutdown();
+    }
+
+}
+
+class Share {
+    private int number = 0;
+    private final Lock lock = new ReentrantLock();
+    private final Condition condition = lock.newCondition();
+
+    public void increment() {
+        lock.lock();
+        try {
+            // 判断
+            while (number != 0) {
+                // 不等于 0，等待
+                condition.await();
+            }
+            // 处理任务
+            number++;
+            System.out.println(Thread.currentThread().getName() + " 生产 " + number);
+
+            // 通知唤醒其他所有线程
+            condition.signalAll();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void decrement() {
+        lock.lock();
+        try {
+            // 判断
+            while (number == 0) {
+                // 等于 0，等待
+                condition.await();
+            }
+            // 处理任务
+            number--;
+            System.out.println(Thread.currentThread().getName() + " 消费 " + number);
+
+            // 通知唤醒其他所有线程
+            condition.signalAll();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            lock.unlock();
+        }
+    }
+}
+```
+
+##### 生产者消费者模式 - 阻塞队列版本
+
+使用阻塞队列就不需要手动加锁了
+
+```java
+package java_two;
+
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * @author parzulpan
+ * @version 1.0
+ * @date 2021-05
+ * @project JavaInterview
+ * @package java_two
+ * @desc 生产者消费者模式-阻塞队列版本
+ */
+
+public class ProducerConsumerQueue {
+    private static final ExecutorService THREAD_POOL_EXECUTOR = new ThreadPoolExecutor(2, 10, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(1000), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
+
+    public static void main(String[] args) {
+        Resource resource = new Resource(new ArrayBlockingQueue<>(10));
+        THREAD_POOL_EXECUTOR.execute(resource::increment);
+
+        THREAD_POOL_EXECUTOR.execute(resource::decrement);
+
+        // 5 秒后停止生产和消费
+        try {
+            TimeUnit.SECONDS.sleep(5);
+            resource.stop();
+            System.out.println(Thread.currentThread().getName() + " 停止生产和消费");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        THREAD_POOL_EXECUTOR.shutdown();
+
+    }
+}
+
+class Resource {
+    private volatile boolean flag = true;
+    private final AtomicInteger atomicInteger = new AtomicInteger();
+    BlockingQueue<String> blockingQueue;
+
+    public Resource(BlockingQueue<String> blockingQueue) {
+        this.blockingQueue = blockingQueue;
+    }
+
+    public void increment() {
+        String data;
+        while (flag) {
+            data = atomicInteger.incrementAndGet() + "";
+
+            // 2s 插入一个数据
+            try {
+                boolean offer = blockingQueue.offer(data, 2L, TimeUnit.SECONDS);
+                if (offer) {
+                    System.out.println(Thread.currentThread().getName() + " 生产成功");
+                } else {
+                    System.out.println(Thread.currentThread().getName() + " 生产失败");
+                }
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        System.out.println(Thread.currentThread().getName() + " 停止生产");
+    }
+
+    public void decrement() {
+        while (flag) {
+            // 2s 移除一个数据
+            String poll;
+            try {
+                poll = blockingQueue.poll(2L, TimeUnit.SECONDS);
+                if (poll != null && !"".equals(poll)) {
+                    System.out.println(Thread.currentThread().getName() + " 消费成功");
+                } else {
+                    System.out.println(Thread.currentThread().getName() + " 消费失败");
+                    flag = false;
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void stop() {
+       flag = false;
+    }
+}
+```
+
+##### 线程池
+
+用于定义等待队列
+
+##### 消息中间件
+
+其底层实现用的是阻塞队列
 
 
 
 ### 线程池用过吗？谈谈对 ThreadPoolExecutor 的理解？
 
+#### 基本概念
+
+线程池主要是控制运行线程的数量，将待处理任务放到等待/阻塞队列，然后创建线程执行这些任务。如果超过了最大线程数，则等待。
+
+它的**优点**有：
+
+* 降低资源消耗
+* 提高响应速度
+* 提供可管理性
+
+它的继承体系为：
+
+![线程池架构](https://images.cnblogs.com/cnblogs_com/parzulpan/1970814/o_210506075702%E7%BA%BF%E7%A8%8B%E6%B1%A0%E6%9E%B6%E6%9E%84.png)
+
+ThreadPoolExcutor 是线程池创建的核心类。类似`Arrays`、`Collections`工具类，`Executor`也有自己的工具类`Executors`。
+
+但是不推荐使用 工具类`Executors` 创建线程池。主要的理由有两个：
+
+* 通过 ThreadPoolExecutor 去创建线程池，这样更能明白线程池的运行原理，从而避免资源浪费
+* 使用 工具类`Executors` 静态方法去创建线程池而产生 OOM 问题：
+  * FixedThreadPool 和 SingleThreadPool：允许的请求队列长度为 Integer.MAX_VALUE，可能会堆积大量的请求，从而导致 OOM
+  * CachedThreadPool 和 ScheduledThreadPool：允许的创建线程数量为 Integer.MAX_VALUE，可能会创建大量的线程，从而导致 OOM
+
+#### 线程池参数
+
+| corePoolSize    | 线程池常驻核心线程数                 |
+| --------------- | ------------------------------------ |
+| maximumPoolSize | 能够容纳的最大线程数，必须大于等于 1 |
+| keepAliveTime   | 空闲线程存活时间                     |
+| unit            | 存活时间单位                         |
+| workQueue       | 存放提交但未执行任务的队列           |
+| threadFactory   | 创建线程的工厂类                     |
+| handler         | 等待队列满后的拒绝策略               |
+
+**理解**：线程池的创建参数，就像一个**银行**。`corePoolSize` 就像银行的 “**当值窗口**“，比如今天有 **2 位柜员**在受理 **客户请求**（任务）。如果超过2个客户，那么新的客户就会在 **等候区**（等待队列`workQueue`）等待。当 **等候区** 也满了，这个时候就要开启 “**加班窗口**”，让其它3位柜员来加班，此时达到 **最大窗口**`maximumPoolSize`，为5个。如果开启了所有窗口，等候区依然满员，此时就应该启动 ”**拒绝策略**“`handler`，告诉不断涌入的客户，叫他们不要进入，已经爆满了。由于不再涌入新客户，办完事的客户增多，窗口开始空闲，这个时候就通过`keepAlivetTime`将多余的3个”加班窗口“取消，恢复到2个”当值窗口“。
+
+#### 底层原理
+
+线程池创建，准备好 corePoolSize 数量的核心线程，准备接受任务
+
+* 如果核心线程已满，就会将任务放入**阻塞队列**中，空闲的核心线程就会自己去阻塞队列中获取任务
+* 如果**阻塞队列**已满，就会直接开启新线程执行，但是最大不超过 maximumPoolSize 数
+* 如果超过 maximumPoolSize 数，就会使用拒绝策略拒绝任务，当执行完成后，在指定的 keepAliveTime 时间以后释放 maximumPoolSize - corePoolSize 这些数量的线程
+
+#### 拒绝策略
+
+当等待队列满时，且达到最大线程数，再有新任务到来，就需要启动拒绝策略。JDK提供了四种拒绝策略，分别是：
+
+* **AbortPolicy**：默认的策略，直接抛出`RejectedExecutionException`异常，阻止系统正常运行。
+* **CallerRunsPolicy**：既不会抛出异常，也不会终止任务，而是将任务返回给调用者。
+* **DiscardOldestPolicy**：抛弃队列中等待最久的任务，然后把当前任务加入队列中尝试再次提交任务。
+* **DiscardPolicy**：直接丢弃任务，不做任何处理。
+
+也可以自定义拒绝策略，只需要实现 `RejectedExecutionHandler` 接口即可。
+
+推荐阅读：
+
+* [【Java基础】线程池和异步编排](https://www.cnblogs.com/parzulpan/p/14684925.html)
+
 
 
 ### 生产过程中如何合理的设置线程池参数？拒绝策略怎么配置？
 
+对于 CPU 密集型任务，需要大量的运算，但是没有阻塞，最大线程数可以是 **CPU核数（Runtime.availableProcessors()）+ 1**。对于IO密集型任务，需要大量的 IO，有大量的阻塞，尽量多配点，可以是**CPU核数 * 2** 或者 **CPU核数/(1-阻塞系数)**， 阻塞系数一般在 0.8~0.9 之间。
+
+对于拒绝策略问题同上。
+
 
 
 ### 死锁编码问题以及如何定位分析？
+
+死锁是指两个或两个以上的进程在执行过程中，因争夺资源而造成的一种互相等待的现象，若无外力干涉那它们都将无法推进下去。如果系统资源充足，进程的资源请求都能够碍到满足，死锁出现的可能性就很低，否则就会因争夺有限的资源而陷入死锁。
+
+**产生死锁主要原因**：
+
+* 系统资源不足
+* 进程运行推进的顺序不合适
+* 资源分配不当
+
+**发生死锁的四个条件**：
+
+* 互斥条件，线程使用的资源至少有一个不能共享的
+* 至少有一个线程必须持有一个资源**且**正在等待获取一个当前被别的线程持有的资源
+* 资源不能被抢占
+* 循环等待
+
+**解决死锁问题**：
+
+* 破坏发生死锁的四个条件之一即可
+
+**查看是否死锁工具**：
+
+* **jps **指令：`jps -l` 可以查看运行的 Java 进程
+* **jstack** 指令：`jstack pid` 可以查看某个 Java 进程的堆栈信息，同时分析出死锁
+
+```shell
+❯ jps -l
+656
+10516 java_two.DeadLockDemo
+12836 org.jetbrains.jps.cmdline.Launcher
+14068 D:\Dev\Tools\nacos-server-1.3.2\nacos\target\nacos-server.jar
+19092
+9956 sun.tools.jps.Jps
+```
+
+```shell
+❯ jstack 10516
+
+// ...
+Found one Java-level deadlock:
+=============================
+"Thread B":
+  waiting to lock monitor 0x000001f9316c7ba8 (object 0x000000076b815550, a java.lang.Object),
+  which is held by "Thread A"
+"Thread A":
+  waiting to lock monitor 0x000001f9316c7af8 (object 0x000000076b815560, a java.lang.Object),
+  which is held by "Thread B"
+
+Java stack information for the threads listed above:
+===================================================
+"Thread B":
+        at java_two.MyTask.run(DeadLockDemo.java:35)
+        - waiting to lock <0x000000076b815550> (a java.lang.Object)
+        - locked <0x000000076b815560> (a java.lang.Object)
+        at java.lang.Thread.run(Thread.java:748)
+"Thread A":
+        at java_two.MyTask.run(DeadLockDemo.java:35)
+        - waiting to lock <0x000000076b815560> (a java.lang.Object)
+        - locked <0x000000076b815550> (a java.lang.Object)
+        at java.lang.Thread.run(Thread.java:748)
+
+Found 1 deadlock.
+```
 
 
 
