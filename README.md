@@ -1,8 +1,6 @@
 # LearnJava
 
-Start learning Java and related technology stack.
-
-[online](https://learnjava.parzulpan.cn)
+Relevant knowledge required by java engineer.
 
 ## 目录
 
@@ -61,10 +59,10 @@ Start learning Java and related technology stack.
   * 学院网站
   * 商场网站
 * 面试总结
-  * 高频面试一
-  * 高频面试二
-  * 高频面试三
-  * 大厂面试
+  * [高频技术面试一](Interview/docs/Java 高频面试题（一）.md)
+  * [高频技术面试二](Interview/docs/Java 高频面试题（二）.md)
+  * [高频技术面试三](Interview/docs/Java 高频面试题（三）.md)
+  * 非技术面试
 
 ## 参考
 
