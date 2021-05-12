@@ -1,6 +1,8 @@
-# LearnJava
+<h1 align="center">JavaEngineer</h1>
 
-Relevant knowledge required by java engineer.
+> Java 工程师需要的相关知识，也是一份学习总结笔记，欢迎交流指正。持续更新中...
+
+[项目文章-博客园](https://www.cnblogs.com/parzulpan/p/14129822.html)
 
 ## 目录
 
@@ -35,34 +37,47 @@ Relevant knowledge required by java engineer.
   * [书城网站](Web/note/Book.md)
 * Java 框架
   * Mybatis
+  * Mybatis Plus
   * Spring
   * Spring MVC
-  * SSM 整合
-  * SSM 项目
-* Java 高级
   * Spring Boot
   * Spring Cloud
+  * Spring Cloud Alibaba
   * Spring Data
   * Spring Security
+  * Spring Session
+* Java 高级
   * Docker
   * Kubernetes
+  * Kubesphere
   * Nginx
-  * Dubbo
-  * Netty
+  * Jenkins
   * Redis
   * ActiveMQ
+  * RabbitMQ
   * MySQL 高级
-  * ShardingSphere
-  * Jenkins
+  * Sharding Sphere
+  * Mycat
+  * Dubbo
+  * Netty
+  * Zookeeper
+  * Kafka
 * 项目实战
-  * 众筹网站
-  * 学院网站
-  * 商场网站
+  * [购物商城项目](https://github.com/parzulpan/shopping)
+  * [在线视频项目](https://github.com/parzulpan/reallive)
 * 面试总结
   * [高频技术面试一](Interview/docs/JavaInterviewQA1.md)
   * [高频技术面试二](Interview/docs/JavaInterviewQA2.md)
   * [高频技术面试三](Interview/docs/JavaInterviewQA3.md)
   * 非技术面试
+* 生产工具
+  * Maven
+  * Idea
+  * VSCode
+  * Git
+  * Linux
+  * Shell
+* 开发者资源
 
 ## 参考
 

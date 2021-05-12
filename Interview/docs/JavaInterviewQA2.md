@@ -813,7 +813,7 @@ public class ContainerNotSafeDemo {
 
 
 
-### 谈谈对 ConcurrentHashMap 的理解？
+### 谈谈 HashMap、Hashtable、ConcurrentHashMap 的原理与区别？
 
 
 
@@ -1832,7 +1832,7 @@ Found 1 deadlock.
 
 
 
-### 谈谈对垃圾回收算法和垃圾收集器的理解？
+### 谈谈对垃圾收集器的理解？
 
 
 
