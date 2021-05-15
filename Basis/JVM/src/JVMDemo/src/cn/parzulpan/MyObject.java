@@ -29,5 +29,6 @@ public class MyObject {
         // java.lang.NullPointerException
         System.out.println(o.getClass().getClassLoader().getParent().getParent());
 
+        new Thread().start();
     }
 }
