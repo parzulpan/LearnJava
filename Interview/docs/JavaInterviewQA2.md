@@ -1806,33 +1806,534 @@ Found 1 deadlock.
 
 ### 谈谈对 JVM 体系结构 的理解？GC 的作用区域是什么？
 
+JVM 的整个体系结构为：
+
+![JVM 体系结构](https://images.cnblogs.com/cnblogs_com/parzulpan/1899738/o_210514075254JVM%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84.png)
+
+其中 Java 栈、本地方法栈、程序计数器 是线程私有的，而 方法区、堆 是线程共有的。
+
+GC 的作用区域是 方法区、堆。
+
 
 
 ### 谈谈对垃圾回收算法的理解?
 
+[复制算法](https://www.cnblogs.com/parzulpan/p/14773388.html#%E5%A4%8D%E5%88%B6%E7%AE%97%E6%B3%95)
+
+[标记清除算法](https://www.cnblogs.com/parzulpan/p/14773388.html#%E6%A0%87%E8%AE%B0%E6%B8%85%E9%99%A4%E7%AE%97%E6%B3%95)
+
+[标记压缩/整理算法](https://www.cnblogs.com/parzulpan/p/14773388.html#%E6%A0%87%E8%AE%B0%E5%8E%8B%E7%BC%A9%E7%AE%97%E6%B3%95)
+
+[标记清理压缩算法](https://www.cnblogs.com/parzulpan/p/14773388.html#%E6%A0%87%E8%AE%B0%E6%B8%85%E9%99%A4%E5%8E%8B%E7%BC%A9%E7%AE%97%E6%B3%95)
+
+[分代收集算法](https://www.cnblogs.com/parzulpan/p/14773388.html#%E5%88%86%E4%BB%A3%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95)
 
 
-### JVM 垃圾回收时如何确定垃圾？什么时 GC Roots？
+
+### JVM 垃圾回收时如何确定垃圾？什么是 GC Roots？
+
+简单的说，内存中已经不再被使用的就是垃圾。即确定对象是否存活。
+
+主要有两种方法：
+
+* **引用计数法**：给每个对象设置一个计数器，当有地方引用这个对象时，计数器加一；当引用失效的时候，计数器减一；当计数器为零时，JVM 就认为该对象不再被使用。
+  * 优点：实现简单，效率高
+  * 缺点：每次对对象赋值时均要维护引用计数器，增加了额外开销；并且很难解决循环引用的问题
+* **根搜索法**：通过一些 `GC Roots` 对象作为起点，从这些节点开始往下搜索，搜索通过的路径成为引用链，当一个对象没有被 `GC Roots` 的引用链连接时，JVM 就认为该对象不再被使用。
+
+GC Roots 就是一组活跃对象的引用。它包括：
+
+* 虚拟机栈（栈帧中的局部变量表）中引用的对象
+* 方法区中的类静态属性引用的对象
+* 方法区中常量引用的对象
+* 本地方法栈中 Native 方法引用的对象
 
 
 
 ### 有 JVM 调优和参数配置经验吗？如何查看 JVM 系统默认值？
 
+[参数详解-官方](https://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html)
+
+JVM 参数类型：
+
+* **标配参数**，比如 `-version`、`-help`、`-showversion` 等，几乎不会改变。
+* **X 参数**，比如 `-Xint` 解释执行模式；`-Xcomp` 编译模式；`-Xmixed` 开启混合模式（默认）等，用的很少。
+* **XX 参数**，比如 `Xms` `Xmx` 等，主要用于 JVM 调优，用的很多。
+
+#### JVM XX 参数
+
+**布尔类型**：
+
+* 公式：`-XX:+某个属性`、`-XX:-某个属性`，开启或关闭某个功能。
+* 例子：`-XX:+/-PrintGCDetails`，是否开启 GC 详细信息；`-XX:+/-UserSerialGC` 是否使用串行垃圾回收器
+
+**键值类型**：
+
+* 公式：`-XX:属性key=值value`
+* 例子：`-XX:Metaspace=128m`、`-XX:MaxTenuringThreshold=15`。
+
+值得注意的是， `-Xms` 和 `-Xmx` 十分常见，用于设置**初始堆大小**和**最大堆大小**。第一眼看上去，既不像 X 参数，也不像 XX 参数。实际上 `-Xms` 等价于 `-XX:InitialHeapSize` ，`-Xmx` 等价于 `-XX:MaxHeapSize`。所以 `-Xms` 和 `-Xmx` 属于 XX 参数。
+
+#### JVM 查看参数
+
+**查看某个参数**：
+
+* 使用 `jps -l` 查看正在运行中的 Java 进程，选择某个进程号 pid。
+
+* 配合 `jinfo -flag JVM参数 pid` 查看它的指定参数信息
+
+* 配合 `jinfo -flags pid` 查看它的所有参数信息
+
+  ```shell
+  > jps -l
+  19280 sun.tools.jps.Jps
+  16040 java_two.JVMParameters
+  22520
+  > jinfo -flag PrintGCDetails 16040
+  -XX:-PrintGCDetails
+  > jinfo -flags 16040
+  Attaching to process ID 16040, please wait...
+  Debugger attached successfully.
+  Server compiler detected.
+  JVM version is 25.291-b10
+  Non-default VM flags: -XX:CICompilerCount=12 -XX:InitialHeapSize=257949696 -XX:MaxHeapSize=4127195136 -XX:MaxNewSize=1375731712 -XX:MinHeapDeltaBytes=524288 -XX:NewSize=85983232 -XX:OldSize=171966464 -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseFastUnorderedTimeStamps -XX:-UseLargePagesIndividualAllocation -XX:+UseParallelGC
+  Command line:  -javaagent:D:\Dev\Tools\jetbrains-toolbox\apps\IDEA-U\ch-0\211.7142.45\lib\idea_rt.jar=10219:D:\Dev\Tools\jetbrains-toolbox\apps\IDEA-U\ch-0\211.7142.45\bin -Dfile.encoding=UTF-8
+  ```
+
+**查看所有参数**：
+
+* `java -XX:+PrintFlagsInitial` 查看初始默认参数值
+
+* `java -XX:+PrintFlagsFinal` 查看修改更新参数值，其中 `=` 表示默认，`:=` 表示修改过的
+
+* `java -XX:+PrintCommandLineFlags` 打印命令行参数
+
+  ```shell
+  > java -XX:+PrintFlagsInitial
+  [Global flags]
+      intx ActiveProcessorCount                       = -1            {product}
+      uintx AdaptiveSizeDecrementScaleFactor          = 4             {product}
+      uintx AdaptiveSizeMajorGCDecayTimeScale         = 10            {product}
+      uintx AdaptiveSizePausePolicy                   = 0             {product}
+  ···
+      uintx YoungPLABSize                             = 4096          {product}
+       bool ZeroTLAB                                  = false         {product}
+       intx hashCode                                  = 5             {product}
+  
+  >java -XX:+PrintFlagsFinal
+  	intx ActiveProcessorCount                       = -1             {product}
+      uintx AdaptiveSizeDecrementScaleFactor          = 4              {product}
+      uintx AdaptiveSizeMajorGCDecayTimeScale         = 10             {product}
+  ...
+      uintx YoungPLABSize                             = 4096            {product}
+       bool ZeroTLAB                                  = false           {product}
+       intx hashCode                                  = 5               {product}
+  
+  > java -XX:+PrintCommandLineFlags
+  -XX:InitialHeapSize=257905728 -XX:MaxHeapSize=4126491648 -XX:+PrintCommandLineFlags -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:-UseLargePagesIndividualAllocation -XX:+UseParallelGC
+  ```
+
 
 
 ### 用过 JVM 的那些基本配置参数？
+
+#### Xmx Xms 参数
+
+最大和初始堆大小。最大默认为物理内存的 **1/4**，初始默认为物理内存的 **1/64**。
+
+#### Xss 参数
+
+等价于 `-XX:ThresholdStackSize`，用于设置单个线程栈的大小，系统默认为 0，但是代表栈大小为 0。而是根据操作系统的不同，有不同的值。比如 64 位的 Linux 系统是 1024K，而 Windows 系统依赖于虚拟内存。
+
+
+
+#### Xmn 参数
+
+设置新生代大小，一般不调整。
+
+
+
+#### MetaspaceSize 参数
+
+设置元空间大小
+
+
+
+#### PrintGCDetails 参数
+
+输出 GC 详细信息，包括 GC 和 FullGC 信息
+
+
+
+#### SurvivorRatio 参数
+
+新生代中，Eden Space 和 两个 Survivor Space 的默认比例是 **8:1:1**，可以通过 `-XX:SurvivorRatio=4` 改成 **4:1:1**
+
+
+
+#### NewRatio 参数
+
+新生代和老年代的默认比例是 **1:2**，可以 `-XX:NewRatio=4` 改成 **1:4**
+
+
+
+#### MaxTenuringThreshold 参数
+
+新生代设置进入老年代的时间，默认是新生代“逃过” 15 次 GC后，会进入老年代。可以通过设置 `-XX:MaxTenuringThreshold=0` ，则对象不会在新生代分配，会直接进入老年代。
 
 
 
 ### 谈谈对四大引用的理解？
 
+#### 强引用
+
+使用 `new` 方法创造出来的对象，默认都是强引用。GC 的时候，就算内存不够，抛出 OOM 也不会回收对象，即**死了也不会回收**。 
+
+```java
+package java_two;
+
+/**
+ * @author parzulpan
+ *
+ * 强引用
+ * VM options: -Xms5m -Xmx5m -XX:+PrintGCDetails
+ */
+
+public class StrongReferenceDemo {
+    public static void main(String[] args) {
+        Object o1 = new Object();
+        Object o2 = new Object();
+        o1 = null;
+        System.gc();
+        System.out.println(o2);
+    }
+}
+
+```
+
+
+
+#### 软引用
+
+需要用 `Object.Reference.SoftReference` 来显式创建。GC的时候，**如果内存够**，**不回收**；**内存不够**，**则回收**。常用于内存敏感的应用，比如高速缓存。
+
+```java
+package java_two;
+
+import java.lang.ref.SoftReference;
+
+/**
+ * @author parzulpan
+ *
+ * 软引用
+ * VM options: -Xms5m -Xmx5m -XX:+PrintGCDetails
+ */
+
+public class SoftReferenceDemo {
+    public static void main(String[] args) {
+        memoryEnough();
+        System.out.println("\n---\n");
+        memoryUnEnough();
+    }
+
+    private static void memoryEnough() {
+        Object o = new Object();
+        SoftReference<Object> softReference = new SoftReference<>(o);
+        System.out.println(o);
+        System.out.println(softReference.get());
+        System.out.println();
+        o = null;
+        System.gc();
+        System.out.println(o);
+        // java.lang.Object@4554617c
+        System.out.println(softReference.get());
+    }
+
+    private static void memoryUnEnough() {
+        Object o = new Object();
+        SoftReference<Object> softReference = new SoftReference<>(o);
+        System.out.println(o);
+        System.out.println(softReference.get());
+        System.out.println();
+        o = null;
+        System.gc();
+        try {
+            // 堆空间压满
+            byte[] bytes = new byte[30 * 1024 * 1024];
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            System.out.println(o);
+            // null
+            System.out.println(softReference.get());
+        }
+    }
+}
+
+```
+
+
+
+#### 弱引用 和 WeakHashMap
+
+需要用 `Object.Reference.WeakReference` 来显示创建。GC的时候，**无论内存够不够都回收**，也可以用在高速缓存上。
+
+传统的 `HashMap` 就算 `key==null` 了，也不会回收键值对。但是如果是 `WeakHashMap`，一旦内存不够用时，且 `key==null` 时，会回收这个键值对。
+
+```java
+package java_two;
+
+import java.lang.ref.WeakReference;
+
+/**
+ * @author parzulpan
+ *
+ * 弱引用
+ * VM options: -Xms5m -Xmx5m -XX:+PrintGCDetails
+ */
+
+public class WeakReferenceDemo {
+    public static void main(String[] args) {
+        Object o = new Object();
+        WeakReference<Object> weakReference = new WeakReference<>(o);
+        System.out.println(o);
+        System.out.println(weakReference.get());
+        System.out.println("\n---\n");
+        o = null;
+        System.gc();
+        System.out.println(o);
+        // null
+        System.out.println(weakReference.get());
+    }
+}
+
+```
+
+```java
+package java_two;
+
+import java.util.HashMap;
+import java.util.WeakHashMap;
+
+/**
+ * @author parzulpan
+ *
+ * WeakHashMap 和 HashMap
+ * VM options: -Xms5m -Xmx5m -XX:+PrintGCDetails
+ */
+
+public class WeakHashMapDemo {
+    public static void main(String[] args) {
+        testHashMap();
+        System.out.println("\n---\n");
+        testWeakHashMap();
+    }
+
+    private static void testHashMap() {
+        HashMap<Integer, String> map = new HashMap<>();
+        Integer key = 1024;
+        String value = "HashMap";
+        map.put(key, value);
+        System.out.println(map);
+        key = null;
+        System.out.println(map);
+        System.gc();
+        System.out.println(map + "\t" + map.size());
+    }
+
+    private static void testWeakHashMap() {
+        WeakHashMap<Integer, String> map = new WeakHashMap<>();
+        Integer key = 1024;
+        String value = "WeakHashMap";
+        map.put(key, value);
+        System.out.println(map);
+        key = null;
+        System.out.println(map);
+        System.gc();
+        System.out.println(map + "\t" + map.size());
+    }
+}
+
+```
+
+
+
+#### 虚引用 和 引用队列
+
+软引用和弱引用可以通过 `get()` 方法获得对象，但是虚引用不行。虚引形同虚设，在任何时候都可能被 GC，不能单独使用，必须**配合引用队列（ReferenceQueue）来使用**。
+
+**设置虚引用的唯一目的**，就是在这个对象被回收时，收到一个**通知**以便进行后续操作，有点像 `Spring` 的后置通知。
+
+弱引用、虚引用被回收后，会被放到引用队列里面，通过 `poll` 方法可以得到。
+
+```java
+```
+
+```java
+```
+
 
 
 ### 谈谈对 OOM 的理解？
 
+#### OOM - Java heap space
+
+JVM 的堆内存不够，造成堆内存溢出。一般原因有两点
+
+* JVM 的堆内存设置太小，可以通过参数 `-Xms` 和 `-Xmx` 来调整。
+* 代码中创建了大量对象，并且长时间不能被 GC 回收（存在被引用）。
+
+```java
+```
+
+
+
+#### OOM - GC overhead limit exceeded
+
+我们知道 GC 的时候会产生 “Stop the World”，理论上 STW 越小越好，正常情况下 GC 操作只会占到很少的一部分时间。但是如果用到超过 98% 的时间去做 GC 操作，而且效果很差，JVM 就会报错。
+
+```java
+```
+
+
+
+#### OOM - GC Direct buffer memory
+
+在写 `NIO` 程序的时候，会用到 `ByteBuffer` 来读取和存入数据。与 Java 堆的数据不一样，`ByteBuffer` 使用 `native`方法，直接在 **堆外分配内存**。当堆外内存（也即本地物理内存）不够时，就会抛出这个错误。
+
+```java
+```
+
+
+
+#### OOM - unable to create new native thread
+
+在高并发场景，如果创建超过了系统默认的最大线程数，就会抛出这个错误。Linux 单个进程默认不能超过 1024 个线程。
+
+解决方法：
+
+* 要么降低程序线程数
+* 要么修改系统最大线程数，命令 `vim /etc/security/limits.d/90-nproc.conf`
+
+```java
+```
+
+
+
+#### OOM - Metaspace
+
+JDK1.8 之后，永久代被元空间替代，它们最大的区别是永久代使用的是 JVM 的堆空间，而元空间使用的是本机物理内存。因此，默认情况下，元空间的大小仅受本地内存限制。当本地内存不够，即元空间内存不够，就会抛出这个错误。
+
+```java
+```
+
 
 
 ### 谈谈对垃圾收集器的理解？
+
+#### 垃圾收集器种类
+
+Java 8 将垃圾收集器分为**四类**：
+
+* **串行收集器 Serial**：为单线程环境设计且只使用**一个线程**进行 GC，会暂停所有用户线程，不适用服务器。就像去餐厅吃饭，只有一个清洁工在打扫卫生。
+* **并行收集器 Parrallel**：为多线程环境设计且使用**多个线程**并行的进行 GC，适用于科学计算、大数据等交互性不敏感的场合。就像去餐厅吃饭，有多个清洁工在同时打扫卫生。
+* **并发收集器 ConcMarkSweep CMS**：用户线程和 GC 线程同时执行（不一定是并行），不会暂停用户线程，适用于互联网高并发等对响应时间敏感的场合。就像去餐厅吃饭，有多个清洁工在同时打扫卫生，并且同时也有人在就餐。
+* **G1 收集器**：对内存的划分与前面 3 种很大不同，将堆内存分割成不同的区域，然后并发地进行垃圾回收。
+
+**默认收集器**主要有 Serial、Parallel、CMS、ParNew、ParallelOld、G1，还有一个快被淘汰的 SerialOld。
+
+可以通过 `java -XX:+PrintCommandLineFlags` 查看默认使用的垃圾收集器，Java8 默认使用`-XX:+UseParallelGC`。
+
+```shell
+> java -XX:+PrintCommandLineFlags
+-XX:InitialHeapSize=257905728 -XX:MaxHeapSize=4126491648 -XX:+PrintCommandLineFlags -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:-UseLargePagesIndividualAllocation -XX:+UseParallelGC
+```
+
+#### 七大垃圾收集器
+
+Serial、Parallel Scavenge（Parallel）、ParNew 适用于回收新生代，SerialOld、ParallelOld、CMS 适用于回收老年代，而 G1 既适用于回收新生代，也适用于回收老年代。体系结构为：
+
+![七大垃圾收集器体系结构](https://images.cnblogs.com/cnblogs_com/parzulpan/1899738/o_210517091150%E4%B8%83%E5%A4%A7%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84.png)
+
+其中连线的**推荐**搭配组合使用，例如新生代用 Serial，老年代用 SerialOld
+
+红叉的**不推荐**搭配组合使用，比如新生代用 Serial，而老年代用 CMS
+
+![七大垃圾收集器推荐搭配](https://images.cnblogs.com/cnblogs_com/parzulpan/1899738/o_210517091157%E4%B8%83%E5%A4%A7%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E6%8E%A8%E8%8D%90%E6%90%AD%E9%85%8D.png)
+
+##### Serial 收集器
+
+年代最久远，是 `Client VM` 模式下的默认新生代收集器，采用**复制算法**。
+
+* **优点**：单个线程收集，没有线程切换开销，拥有最高的单线程 GC 效率。
+* **缺点**：收集的时候会暂停用户线程。
+
+使用 `-XX:+UseSerialGC` 可以显式开启，开启后默认使用 `Serial`+`SerialOld` 的组合。
+
+![Serial 收集器](https://images.cnblogs.com/cnblogs_com/parzulpan/1899738/o_210517145529Serial%20%E6%94%B6%E9%9B%86%E5%99%A8.jpeg)
+
+##### ParNew 收集器
+
+也就是 `Serial` 的多线程版本，GC 的时候不再是一个线程，而是多个，是 `Server VM` 模式下的默认新生代收集器，采用**复制算法**。
+
+使用 `-XX:+UseParNewGC` 可以显式开启，开启后默认使用 `ParNew`+`SerialOld` 的组合。但是由于 `SerialOld` 已经过时，所以建议配合`CMS`使用。
+
+![ParNew 收集器](https://images.cnblogs.com/cnblogs_com/parzulpan/1899738/o_210517145558ParNew%20%E6%94%B6%E9%9B%86%E5%99%A8.jpeg)
+
+##### Parallel Scavenge（Parallel） 收集器
+
+`ParNew`收集器仅在**新生代**使用多线程收集，老年代默认是 `SerialOld`，所以是单线程收集。而 `Parallel Scavenge` 在新、老两代**都采用**多线程收集。`Parallel Scavenge` 还有一个特点就是**吞吐量优先收集器**，可以通过自适应调节，保证最大吞吐量，采用**复制算法**。
+
+使用 `-XX:+UseParallelGC` 可以显式开启， 开启后默认使用 `Parallel`+`ParallelOld` 的组合。
+
+其它参数，比如 `-XX:ParallelGCThreads=N` 可以选择 N 个线程进行GC，`-XX:+UseAdaptiveSizePolicy` 使用自适应调节策略。
+
+##### SerialOld 收集器
+
+`Serial`的老年代版本，采用**标准压缩/整理算法**。JDK1.5 之前跟`Parallel Scavenge`配合使用，现在已经不了，它作为 `CMS` 的后备收集器。
+
+##### ParallelOld 收集器
+
+`Parallel` 的老年代版本，JDK1.6 之前，新生代用 `Parallel` 而老年代用 `SerialOld`，只能保证新生代的吞吐量。JDK1.8 后，老年代改用 `ParallelOld`。
+
+使用 `-XX:+UseParallelOldGC` 可以显式开启， 开启后默认使用 `Parallel`+`ParallelOld` 的组合。
+
+##### CMS 收集器
+
+是一种以获得**最短 GC 停顿**为目标的收集器，适用于互联网或者B/S系统的服务器上，这类应用尤其重视服务器的**响应速度**，希望停顿时间最短。它是 `G1` 收集器出来之前的首选收集器，采用**标准清除算法**。在 GC 的时候，会与用户线程并发执行，不会停顿用户线程。但是在 **标记** 的时候，仍然会 **STW**。
+
+使用 `-XX:+UseConcMarkSweepGC` 可以显式开启，开启后默认使用 `ParNew`+`SerialOld` 的组合。
+
+![CMS 收集器](https://images.cnblogs.com/cnblogs_com/parzulpan/1899738/o_210517145625CMS%20%E6%94%B6%E9%9B%86%E5%99%A8.jpeg)
+
+由上图，**大致过程**为：
+
+* **初始标记**：只是标记一下 GC Roots 能直接关联的对象，速度很快，需要 STW
+* **并发标记**：主要的标记过程，标记全部对象，和用户线程一起工作，不需要 STW
+* **重新标记**：修正并发标记阶段出现的变动，需要 STW
+* **并发清除**：清理垃圾，和用户线程一起工作，不需要 STW
+
+**优缺点**：
+
+* 优点：停顿时间少，响应速度快，用户体验好
+* 缺点：使用标准清除算法会产生内存碎片；由于需要并发工作，会占用系统线程资源；标记时用户线程也在工作，无法有效处理新产生的垃圾
+
+##### G1 收集器
+
+之前的收集器都有三个区域（新生代、老年代、元空间），而 G1 收集器只有 G1 区和元空间。其中 G1 区不分为新生、老年代，而是一个一个 **Region**，每个 Region 即可能包含新生代，也可能包含老年代。
+
+`G1` 收集器既可以提高吞吐量，又可以减少 GC 时间。最重要的是 **STW 可控**，增加了预测机制，可以让用户指定停顿时间。
+
+使用 `-XX:+UseG1GC` 可以显式开启，还有 `-XX:G1HeapRegionSize=n`、`-XX:MaxGCPauseMillis=n` 等参数可指定。
+
+**优点**：
+
+* **并行和并发**：充分利用多核 CPU，尽量缩短 STW
+* **分代收集**：虽然还保留着新、老两代的概念，但物理上不再隔离，而是融合在Region中
+* **空间整合**：`G1` 整体上看是**标准整理**算法，但在局部看又是**复制算法**，不会产生内存碎片
+* **可预测停顿**：用户可以指定一个GC停顿时间，`G1` 收集器会尽量满足。
+
+大致过程同 CMS 收集器。
 
 
 
@@ -1842,9 +2343,27 @@ Found 1 deadlock.
 
 ### 如果生产环境 CPU 占用过高，谈谈你的分析思路和定位？
 
+先用 top 找到 CPU 占用最高的进程，然后使用 ps -mp pid -o THREAD,tid,time，得到该进程里面占用最高的线程。这个线程是10进制的，将其转换成 16 进制，然后 jstack pid | grep tid 可以定位到具体哪一行导致了占用过高。
+
 
 
 ### JDK 自带的 JVM 性能调优和监控工具用过那些？
+
+#### jps
+
+Java版的 `ps -ef` 查看所有 JVM 进程。
+
+#### jstack
+
+查看 JVM 中运行线程的状态，比较重要。可以定位 CPU 占用过高位置，定位死锁位置。
+
+#### jinfo/jstat
+
+`jinfo` 查看 JVM 的运行环境参数，比如默认的 JVM 参数等。`jstat` 是统计信息监视工具。
+
+#### jmap
+
+JVM 内存映像工具。
 
 
 
