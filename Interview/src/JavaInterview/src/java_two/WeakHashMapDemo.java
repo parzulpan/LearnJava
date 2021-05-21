@@ -24,8 +24,10 @@ public class WeakHashMapDemo {
         map.put(key, value);
         System.out.println(map);
         key = null;
+        // {1024=HashMap}
         System.out.println(map);
         System.gc();
+        // {1024=HashMap}	1
         System.out.println(map + "\t" + map.size());
     }
 
@@ -36,8 +38,10 @@ public class WeakHashMapDemo {
         map.put(key, value);
         System.out.println(map);
         key = null;
+        // {1024=WeakHashMap}
         System.out.println(map);
         System.gc();
+        // {}	0
         System.out.println(map + "\t" + map.size());
     }
 }

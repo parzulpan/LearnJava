@@ -10,9 +10,11 @@ package java_two;
 public class StrongReferenceDemo {
     public static void main(String[] args) {
         Object o1 = new Object();
-        Object o2 = new Object();
+        // o2 引用赋值
+        Object o2 = o1;
         o1 = null;
         System.gc();
+        // java.lang.Object@1b6d3586
         System.out.println(o2);
     }
 }

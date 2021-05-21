@@ -1872,7 +1872,7 @@ JVM 参数类型：
 * 公式：`-XX:属性key=值value`
 * 例子：`-XX:Metaspace=128m`、`-XX:MaxTenuringThreshold=15`。
 
-值得注意的是， `-Xms` 和 `-Xmx` 十分常见，用于设置**初始堆大小**和**最大堆大小**。第一眼看上去，既不像 X 参数，也不像 XX 参数。实际上 `-Xms` 等价于 `-XX:InitialHeapSize` ，`-Xmx` 等价于 `-XX:MaxHeapSize`。所以 `-Xms` 和 `-Xmx` 属于 XX 参数。
+**值得注意的是**， `-Xms` 和 `-Xmx` 十分常见，用于设置**初始堆大小**和**最大堆大小**。第一眼看上去，既不像 X 参数，也不像 XX 参数。实际上 `-Xms` 等价于 `-XX:InitialHeapSize` ，`-Xmx` 等价于 `-XX:MaxHeapSize`。所以 `-Xms` 和 `-Xmx` 属于 XX 参数。
 
 #### JVM 查看参数
 
@@ -1905,6 +1905,8 @@ JVM 参数类型：
 * `java -XX:+PrintFlagsInitial` 查看初始默认参数值
 
 * `java -XX:+PrintFlagsFinal` 查看修改更新参数值，其中 `=` 表示默认，`:=` 表示修改过的
+
+* `java -XX:+PrintFlagsFinal -XX:MetaspaceSize=512m HelloWorld` 运行 Java 命令的同时打印出参数
 
 * `java -XX:+PrintCommandLineFlags` 打印命令行参数
 
@@ -1943,51 +1945,47 @@ JVM 参数类型：
 
 #### Xss 参数
 
-等价于 `-XX:ThresholdStackSize`，用于设置单个线程栈的大小，系统默认为 0，但是代表栈大小为 0。而是根据操作系统的不同，有不同的值。比如 64 位的 Linux 系统是 1024K，而 Windows 系统依赖于虚拟内存。
-
-
+等价于 `-XX:ThreadStackSize`，用于设置单个线程栈的大小，系统默认为 0，但是不一定代表栈大小为 0。而是根据操作系统的不同，有不同的值。比如 64 位的 Linux 系统是 1024K，而 Windows 系统依赖于虚拟内存。
 
 #### Xmn 参数
 
 设置新生代大小，一般不调整。
 
-
-
 #### MetaspaceSize 参数
 
-设置元空间大小
+设置元空间大小。永久代使用的是 JVM 的堆内存，而元空间并在虚拟机中而是使用本机物理内存，所以元空间的大小是受本地内存限制的。
 
-
+典型使用：`-Xms128m -Xmx4096m -Xss1024k -XX:MetaspaceSize=512m -XX:+PrintCommandLineFlags -XX:+PrintGCDetails -XX:+UseSerialGC`
 
 #### PrintGCDetails 参数
 
-输出 GC 详细信息，包括 GC 和 FullGC 信息
-
-
+输出 GC 详细信息，包括 GC 和 FullGC 信息。
 
 #### SurvivorRatio 参数
 
 新生代中，Eden Space 和 两个 Survivor Space 的默认比例是 **8:1:1**，可以通过 `-XX:SurvivorRatio=4` 改成 **4:1:1**
 
-
+即 SurvivorRatio 值就是设置 Eden Space 的比例占多少，Survivor Space 0 和 Survivor Space 1相同。
 
 #### NewRatio 参数
 
-新生代和老年代的默认比例是 **1:2**，可以 `-XX:NewRatio=4` 改成 **1:4**
+新生代和老年代的默认比例是 **1:2**，可以通过 `-XX:NewRatio=4` 改成 **1:4**
 
-
+即 NewRadio 值就是设置老年代的比例占多少。
 
 #### MaxTenuringThreshold 参数
 
-新生代设置进入老年代的时间，默认是新生代“逃过” 15 次 GC后，会进入老年代。可以通过设置 `-XX:MaxTenuringThreshold=0` ，则对象不会在新生代分配，会直接进入老年代。
+新生代设置进入老年代的时间，默认是新生代“逃过” 15 次 GC后（任职期限 15 次之后），会进入老年代。可以通过设置 `-XX:MaxTenuringThreshold=0` ，则对象不会在新生代分配，会直接进入老年代。
 
-
+对于年老代比较多的应用，这个值越小，可以提高效率。如果将此值设置为一个较大的值，则年轻代对象会在 Survivor 区进行多次复制，这样可以增加对象在年轻代的存活时间，增加在年轻代即被回收的概率。
 
 ### 谈谈对四大引用的理解？
 
 #### 强引用
 
-使用 `new` 方法创造出来的对象，默认都是强引用。GC 的时候，就算内存不够，抛出 OOM 也不会回收对象，即**死了也不会回收**。 
+使用 `new` 方法创造出来的对象，默认都是强引用。GC 的时候，就算内存不够，抛出 OOM 也不会回收对象，即**死了也不会回收**。 因此强引用是造成 Java 内存泄漏的主要原因之一。
+
+对于一个普通的对象，如果没有其他的引用关系，只要超过了引用的作用域或者显式地将相应（强）引用赋值为 null，则一般认为就是可以被垃圾收集了(当然具体回收时机还是要看垃圾收集策略)。
 
 ```java
 package java_two;
@@ -2002,9 +2000,11 @@ package java_two;
 public class StrongReferenceDemo {
     public static void main(String[] args) {
         Object o1 = new Object();
-        Object o2 = new Object();
+        // o2 引用赋值
+        Object o2 = o1;
         o1 = null;
         System.gc();
+        // java.lang.Object@1b6d3586
         System.out.println(o2);
     }
 }
@@ -2076,7 +2076,7 @@ public class SoftReferenceDemo {
 
 #### 弱引用 和 WeakHashMap
 
-需要用 `Object.Reference.WeakReference` 来显示创建。GC的时候，**无论内存够不够都回收**，也可以用在高速缓存上。
+需要用 `Object.Reference.WeakReference` 来显式创建。GC的时候，**无论内存够不够都回收**，也可以用在高速缓存上。
 
 传统的 `HashMap` 就算 `key==null` 了，也不会回收键值对。但是如果是 `WeakHashMap`，一旦内存不够用时，且 `key==null` 时，会回收这个键值对。
 
@@ -2136,8 +2136,10 @@ public class WeakHashMapDemo {
         map.put(key, value);
         System.out.println(map);
         key = null;
+        // {1024=HashMap}
         System.out.println(map);
         System.gc();
+        // {1024=HashMap}	1
         System.out.println(map + "\t" + map.size());
     }
 
@@ -2148,8 +2150,10 @@ public class WeakHashMapDemo {
         map.put(key, value);
         System.out.println(map);
         key = null;
+        // {1024=WeakHashMap}
         System.out.println(map);
         System.gc();
+        // {}	0
         System.out.println(map + "\t" + map.size());
     }
 }
@@ -2158,18 +2162,64 @@ public class WeakHashMapDemo {
 
 
 
+#### 软、弱引用的应用场景
+
+假如有一个应用需要读取大量的本地图片：
+
+* 如果每次读取图片都从硬盘读取，则会严重影响性能
+* 如果一次性全部加载到内存中，则可能造成内存溢出
+
+使用软、弱引用可以解决这个问题，设计思路：
+
+* 使用 HashMap 来保存 图片的路径 和 相应图片对象关联的软引用 之间的映射关系
+* 在内存不足时，JVM 会自动回收这些缓存图片对象所占的空间，从而有效地避免了 OOM 的问题
+* 定义：`Map<String, SoftReference<Bitmap>> imageCache = new HashMap<String, SoftReference<Bitmap>>();`
+
+
+
 #### 虚引用 和 引用队列
 
-软引用和弱引用可以通过 `get()` 方法获得对象，但是虚引用不行。虚引形同虚设，在任何时候都可能被 GC，不能单独使用，必须**配合引用队列（ReferenceQueue）来使用**。
+软引用和弱引用可以通过 `get()` 方法获得对象，但是虚引用不行。虚引用即形同虚设，在任何时候都可能被 GC，不能单独使用，必须**配合引用队列（ReferenceQueue）来使用**。
 
 **设置虚引用的唯一目的**，就是在这个对象被回收时，收到一个**通知**以便进行后续操作，有点像 `Spring` 的后置通知。
 
 弱引用、虚引用被回收后，会被放到引用队列里面，通过 `poll` 方法可以得到。
 
 ```java
-```
+package java_two;
 
-```java
+import java.lang.ref.PhantomReference;
+import java.lang.ref.ReferenceQueue;
+
+/**
+ * @author parzulpan
+ *
+ * 虚引用
+ * VM options: -Xms5m -Xmx5m -XX:+PrintGCDetails
+ */
+
+public class PhantomReferenceDemo {
+    public static void main(String[] args) throws InterruptedException {
+        Object o = new Object();
+        ReferenceQueue<Object> referenceQueue = new ReferenceQueue<>();
+        PhantomReference<Object> phantomReference = new PhantomReference<>(o, referenceQueue);
+        System.out.println(o);
+        // null
+        System.out.println(phantomReference.get());
+        // null
+        System.out.println(referenceQueue.poll());
+        System.out.println("\n---\n");
+        o = null;
+        System.gc();
+        Thread.sleep(500);
+        System.out.println(o);
+        // null
+        System.out.println(phantomReference.get());
+        // java.lang.ref.PhantomReference@4554617c
+        System.out.println(referenceQueue.poll());
+    }
+}
+
 ```
 
 
@@ -2184,6 +2234,26 @@ JVM 的堆内存不够，造成堆内存溢出。一般原因有两点
 * 代码中创建了大量对象，并且长时间不能被 GC 回收（存在被引用）。
 
 ```java
+package java_two;
+
+import java.util.Random;
+
+/**
+ * @author parzulpan
+ *
+ * OOM - Java heap space
+ * VM options: -Xms5m -Xmx5m -XX:+PrintGCDetails
+ */
+
+public class OOMJavaHeapSpace {
+    public static void main(String[] args) {
+        String str = "oom";
+        while (true) {
+            str += str + new Random().nextInt(111111) + new Random().nextInt(999999);
+            // System.out.println(str);
+        }
+    }
+}
 ```
 
 
@@ -2193,6 +2263,34 @@ JVM 的堆内存不够，造成堆内存溢出。一般原因有两点
 我们知道 GC 的时候会产生 “Stop the World”，理论上 STW 越小越好，正常情况下 GC 操作只会占到很少的一部分时间。但是如果用到超过 98% 的时间去做 GC 操作，而且效果很差，JVM 就会报错。
 
 ```java
+package java_two;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author parzulpan
+ *
+ * OOM - GC overhead limit exceeded
+ * VM options: -Xms10m -Xmx10m -XX:MaxDirectMemorySize=5m -XX:+PrintGCDetails
+ */
+
+public class OOMGCOverhead {
+    public static void main(String[] args) {
+        int i = 0;
+        List<String> list = new ArrayList<>();
+        try {
+            while (true) {
+                list.add(String.valueOf(++i).intern());
+            }
+        } catch (Exception e) {
+            System.out.println(" i = " + i);
+            e.printStackTrace();
+            throw e;
+        }
+    }
+}
+
 ```
 
 
@@ -2202,6 +2300,31 @@ JVM 的堆内存不够，造成堆内存溢出。一般原因有两点
 在写 `NIO` 程序的时候，会用到 `ByteBuffer` 来读取和存入数据。与 Java 堆的数据不一样，`ByteBuffer` 使用 `native`方法，直接在 **堆外分配内存**。当堆外内存（也即本地物理内存）不够时，就会抛出这个错误。
 
 ```java
+package java_two;
+
+import sun.misc.VM;
+
+import java.nio.ByteBuffer;
+
+/**
+ * @author parzulpan
+ *
+ * OOM - GC Direct buffer memory
+ * VM options: -Xms10m -Xmx10m -XX:MaxDirectMemorySize=5m -XX:+PrintGCDetails
+ */
+
+public class OOMGCDirect {
+    public static void main(String[] args) {
+        System.out.println("MaxDirectMemorySize = " + (VM.maxDirectMemory() / 1024 / 1024) + "M");
+        try {
+            Thread.sleep(300);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(6 * 1024 * 1024);
+    }
+}
+
 ```
 
 
@@ -2213,9 +2336,32 @@ JVM 的堆内存不够，造成堆内存溢出。一般原因有两点
 解决方法：
 
 * 要么降低程序线程数
-* 要么修改系统最大线程数，命令 `vim /etc/security/limits.d/90-nproc.conf`
+* 要么修改系统最大线程数，命令 `vi /etc/security/limits.d/20-nproc.conf`
 
 ```java
+package java_two;
+
+/**
+ * @author parzulpan
+ *
+ * OOM - unable to create new native thread
+ * VM options: -XX:+PrintGCDetails
+ */
+
+public class OOMUnableCreateNewNativeThread {
+    public static void main(String[] args) {
+        for (int i = 0; i < Integer.MAX_VALUE; i++) {
+            new Thread(() -> {
+                try {
+                    Thread.sleep(Integer.MAX_VALUE);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }, "" + i).start();
+        }
+    }
+}
+
 ```
 
 
@@ -2338,6 +2484,8 @@ Serial、Parallel Scavenge（Parallel）、ParNew 适用于回收新生代，Ser
 
 
 ### 如果生产环境服务器变慢，你有什么诊断思路和性能评估手段？
+
+
 
 
 
