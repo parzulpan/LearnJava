@@ -2321,6 +2321,7 @@ public class OOMGCDirect {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        // 分配 OS 本地内存，不属于 GC管辖范围，由于不需要内存拷贝所有速度相对较快
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(6 * 1024 * 1024);
     }
 }
@@ -2336,7 +2337,7 @@ public class OOMGCDirect {
 解决方法：
 
 * 要么降低程序线程数
-* 要么修改系统最大线程数，命令 `vi /etc/security/limits.d/20-nproc.conf`
+* 要么修改系统最大线程数，修改命令 `vi /etc/security/limits.d/20-nproc.conf`
 
 ```java
 package java_two;
@@ -2370,12 +2371,58 @@ public class OOMUnableCreateNewNativeThread {
 
 JDK1.8 之后，永久代被元空间替代，它们最大的区别是永久代使用的是 JVM 的堆空间，而元空间使用的是本机物理内存。因此，默认情况下，元空间的大小仅受本地内存限制。当本地内存不够，即元空间内存不够，就会抛出这个错误。
 
+元空间主要存放：
+
+* 虚拟机加载的类信息
+* 常量池
+* 静态变量
+* 即时编译的代码
+
+模拟 Metaspace 空间溢出，可以借助 CGLib 直接操作字节码运行时不断生成类往元空间灌，类占据的空间总是会超过 Metaspace 指定的空间大小的。
+
 ```java
+package java_two;
+
+import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.MethodInterceptor;
+
+/**
+ * @author parzulpan
+ *
+ * OOM - Metaspace
+ * VM options: -XX:MetaspaceSize=10m -XX:MaxMetaspaceSize=10m -XX:+PrintGCDetails
+ */
+
+public class OOMMetaspace {
+    /** 静态类 */
+    static class OOMObject {}
+
+    public static void main(final String[] args) {
+        int i = 0;
+        try {
+            while (true) {
+                ++i;
+                // 使用 Spring 的动态字节码技术
+                Enhancer enhancer = new Enhancer();
+                enhancer.setSuperclass(OOMObject.class);
+                enhancer.setUseCache(false);
+                enhancer.setCallback((MethodInterceptor) (o, method, objects, methodProxy) -> methodProxy.invokeSuper(o, args));
+                enhancer.create();
+            }
+        } catch (Throwable throwable) {
+            System.out.println("循环 " + i + " 次发生OOM - Metaspace");
+        } finally {
+            ;
+        }
+    }
+}
 ```
 
 
 
 ### 谈谈对垃圾收集器的理解？
+
+GC 算法(引用计数/复制/标清/标整)是内存回收的方法论，而垃圾收集器就是算法的落地实现。
 
 #### 垃圾收集器种类
 
@@ -2383,7 +2430,7 @@ Java 8 将垃圾收集器分为**四类**：
 
 * **串行收集器 Serial**：为单线程环境设计且只使用**一个线程**进行 GC，会暂停所有用户线程，不适用服务器。就像去餐厅吃饭，只有一个清洁工在打扫卫生。
 * **并行收集器 Parrallel**：为多线程环境设计且使用**多个线程**并行的进行 GC，适用于科学计算、大数据等交互性不敏感的场合。就像去餐厅吃饭，有多个清洁工在同时打扫卫生。
-* **并发收集器 ConcMarkSweep CMS**：用户线程和 GC 线程同时执行（不一定是并行），不会暂停用户线程，适用于互联网高并发等对响应时间敏感的场合。就像去餐厅吃饭，有多个清洁工在同时打扫卫生，并且同时也有人在就餐。
+* **并发收集器 ConcMarkSweep（CMS）**：用户线程和 GC 线程同时执行（不一定是并行），不会暂停用户线程，适用于互联网高并发等对响应时间敏感的场合。就像去餐厅吃饭，有多个清洁工在同时打扫卫生，并且同时也有人在就餐。
 * **G1 收集器**：对内存的划分与前面 3 种很大不同，将堆内存分割成不同的区域，然后并发地进行垃圾回收。
 
 **默认收集器**主要有 Serial、Parallel、CMS、ParNew、ParallelOld、G1，还有一个快被淘汰的 SerialOld。
@@ -2394,6 +2441,23 @@ Java 8 将垃圾收集器分为**四类**：
 > java -XX:+PrintCommandLineFlags
 -XX:InitialHeapSize=257905728 -XX:MaxHeapSize=4126491648 -XX:+PrintCommandLineFlags -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:-UseLargePagesIndividualAllocation -XX:+UseParallelGC
 ```
+
+#### GC 约定参数说明
+
+- DefNew：Default New Generation
+- Tenured：Old
+- ParNew：Parallel New Generation
+- PSYoungGen：Parallel Scavenge
+- ParOldGen：Parallel Old Generation
+
+**Server/Client 模式分别是什么意思？**
+
+* 使用范围：一般使用 Server 模式，Client 模式基本不会使用
+
+* 操作系统
+  * 32 位的 Windows 操作系统，不论硬件如何都默认使用 Client 的 JVM 模式
+  * 32 位的其它操作系统，2G 内存同时有 2 个 CPU 以上用 Server 模式，低于该配置还是 Client 模式
+  * 64 位只有 Server 模式
 
 #### 七大垃圾收集器
 
@@ -2418,6 +2482,12 @@ Serial、Parallel Scavenge（Parallel）、ParNew 适用于回收新生代，Ser
 
 ![Serial 收集器](https://images.cnblogs.com/cnblogs_com/parzulpan/1899738/o_210517145529Serial%20%E6%94%B6%E9%9B%86%E5%99%A8.jpeg)
 
+```java
+-Xms10m -Xmx10m -XX:+PrintGCDetails -XX:+PrintCommandLineFlags -XX:+UseSerialGC
+```
+
+
+
 ##### ParNew 收集器
 
 也就是 `Serial` 的多线程版本，GC 的时候不再是一个线程，而是多个，是 `Server VM` 模式下的默认新生代收集器，采用**复制算法**。
@@ -2426,49 +2496,73 @@ Serial、Parallel Scavenge（Parallel）、ParNew 适用于回收新生代，Ser
 
 ![ParNew 收集器](https://images.cnblogs.com/cnblogs_com/parzulpan/1899738/o_210517145558ParNew%20%E6%94%B6%E9%9B%86%E5%99%A8.jpeg)
 
+```ja
+-Xms10m -Xmx10m -XX:+PrintGCDetails -XX:+PrintCommandLineFlags -XX:+UseParNewGC
+```
+
+
+
 ##### Parallel Scavenge（Parallel） 收集器
 
-`ParNew`收集器仅在**新生代**使用多线程收集，老年代默认是 `SerialOld`，所以是单线程收集。而 `Parallel Scavenge` 在新、老两代**都采用**多线程收集。`Parallel Scavenge` 还有一个特点就是**吞吐量优先收集器**，可以通过自适应调节，保证最大吞吐量，采用**复制算法**。
+`ParNew`收集器仅在**新生代**使用多线程收集，老年代默认是 `SerialOld`，所以是单线程收集。而 `Parallel Scavenge` 在新、老两代**都采用**多线程收集。`Parallel Scavenge` 还有一个特点就是**吞吐量优先收集器**，可以通过自适应调节，保证最大吞吐量（比如程序运行 100 分钟，垃圾收集时间 1 分钟，吞吐量就是 99%），采用**复制算法**。
 
 使用 `-XX:+UseParallelGC` 可以显式开启， 开启后默认使用 `Parallel`+`ParallelOld` 的组合。
 
-其它参数，比如 `-XX:ParallelGCThreads=N` 可以选择 N 个线程进行GC，`-XX:+UseAdaptiveSizePolicy` 使用自适应调节策略。
+其它参数，比如 `-XX:ParallelGCThreads=N` 可以选择 N 个线程进行GC，`-XX:+UseAdaptiveSizePolicy` 使用自适应调节策略。当 CPU 核数大于 8 时，N = 5/8，否则 N = 实际核数。
+
+```java
+-Xms10m -Xmx10m -XX:+PrintGCDetails -XX:+PrintCommandLineFlags -XX:+UseParallelGC
+```
+
+
 
 ##### SerialOld 收集器
 
-`Serial`的老年代版本，采用**标准压缩/整理算法**。JDK1.5 之前跟`Parallel Scavenge`配合使用，现在已经不了，它作为 `CMS` 的后备收集器。
+`Serial`的老年代版本，采用**标准压缩/整理算法**。JDK1.5 之前跟`Parallel Scavenge`配合使用，现在已经不用了，它作为 `CMS` 的后备收集器。
 
 ##### ParallelOld 收集器
 
-`Parallel` 的老年代版本，JDK1.6 之前，新生代用 `Parallel` 而老年代用 `SerialOld`，只能保证新生代的吞吐量。JDK1.8 后，老年代改用 `ParallelOld`。
+`Parallel` 的老年代版本，JDK1.6 之前，新生代用 `Parallel` 而老年代用 `SerialOld`，只能保证新生代的吞吐量。JDK1.8 后，老年代改用 `ParallelOld`。采用**标准压缩/整理算法**。
 
 使用 `-XX:+UseParallelOldGC` 可以显式开启， 开启后默认使用 `Parallel`+`ParallelOld` 的组合。
 
+```java
+-Xms10m -Xmx10m -XX:+PrintGCDetails -XX:+PrintCommandLineFlags -XX:+UseParallelOldGC
+```
+
+
+
 ##### CMS 收集器
 
-是一种以获得**最短 GC 停顿**为目标的收集器，适用于互联网或者B/S系统的服务器上，这类应用尤其重视服务器的**响应速度**，希望停顿时间最短。它是 `G1` 收集器出来之前的首选收集器，采用**标准清除算法**。在 GC 的时候，会与用户线程并发执行，不会停顿用户线程。但是在 **标记** 的时候，仍然会 **STW**。
+是一种以获得**最短 GC 停顿**为目标的收集器，适用于互联网或者 B/S 系统的服务器上，这类应用尤其重视服务器的**响应速度**，希望停顿时间最短。它是 `G1` 收集器出来之前的首选收集器，采用**标准清除算法**。在 GC 的时候，会与用户线程并发执行，不会停顿用户线程。但是在 **标记** 的时候，仍然会 **STW**。
 
-使用 `-XX:+UseConcMarkSweepGC` 可以显式开启，开启后默认使用 `ParNew`+`SerialOld` 的组合。
+使用 `-XX:+UseConcMarkSweepGC` 可以显式开启，开启后默认使用 `ParNew`+`CMS` + `SerialOld` 的组合。SerialOld 将作为 CMS 出错的后备收集器。
 
 ![CMS 收集器](https://images.cnblogs.com/cnblogs_com/parzulpan/1899738/o_210517145625CMS%20%E6%94%B6%E9%9B%86%E5%99%A8.jpeg)
 
 由上图，**大致过程**为：
 
-* **初始标记**：只是标记一下 GC Roots 能直接关联的对象，速度很快，需要 STW
-* **并发标记**：主要的标记过程，标记全部对象，和用户线程一起工作，不需要 STW
-* **重新标记**：修正并发标记阶段出现的变动，需要 STW
-* **并发清除**：清理垃圾，和用户线程一起工作，不需要 STW
+* **初始标记 CMS Initial mark**：只是标记一下 GC Roots 能直接关联的对象，速度很快，需要 STW
+* **并发标记 CMS concurrent mark**：主要的标记过程，标记全部对象，和用户线程一起工作，不需要 STW
+* **重新标记 CMS remark**：修正并发标记阶段出现的变动，需要 STW
+* **并发清除 CMS concurrent sweep**：清理垃圾，和用户线程一起工作，不需要 STW
 
 **优缺点**：
 
 * 优点：停顿时间少，响应速度快，用户体验好
 * 缺点：使用标准清除算法会产生内存碎片；由于需要并发工作，会占用系统线程资源；标记时用户线程也在工作，无法有效处理新产生的垃圾
 
+```java
+-Xms10m -Xmx10m -XX:+PrintGCDetails -XX:+PrintCommandLineFlags -XX:+UseConcMarkSweepGC
+```
+
+
+
 ##### G1 收集器
 
-之前的收集器都有三个区域（新生代、老年代、元空间），而 G1 收集器只有 G1 区和元空间。其中 G1 区不分为新生、老年代，而是一个一个 **Region**，每个 Region 即可能包含新生代，也可能包含老年代。
+之前的收集器都有三个区域（新生代、老年代、元空间），而 G1 收集器只有 G1 区和元空间。其中 G1 区不分为新生、老年代，而是一个一个 **Region**，每个 Region 即可能包含新生代，也可能包含老年代。整体上采用**标准压缩/整理算法**，局部上采用**复制算法**，不会产生内存碎片。
 
-`G1` 收集器既可以提高吞吐量，又可以减少 GC 时间。最重要的是 **STW 可控**，增加了预测机制，可以让用户指定停顿时间。
+`G1` 收集器，是一款面向服务端应用的收集器，它既可以提高吞吐量，又可以减少 GC 时间。最重要的是 **STW 可控**，增加了预测机制，可以让用户指定停顿时间。
 
 使用 `-XX:+UseG1GC` 可以显式开启，还有 `-XX:G1HeapRegionSize=n`、`-XX:MaxGCPauseMillis=n` 等参数可指定。
 
@@ -2480,6 +2574,23 @@ Serial、Parallel Scavenge（Parallel）、ParNew 适用于回收新生代，Ser
 * **可预测停顿**：用户可以指定一个GC停顿时间，`G1` 收集器会尽量满足。
 
 大致过程同 CMS 收集器。
+
+```java
+-Xms10m -Xmx10m -XX:+PrintGCDetails -XX:+PrintCommandLineFlags -XX:+UseG1GC
+```
+
+
+
+#### 生产过程中如何合理的选择垃圾收集器
+
+* 单 CPU 或者小内存，单机程序
+  * -XX:+UseSerialGC
+* 多 CPU，需要最大的吞吐量，如后台计算型应用
+  * -XX:+UseParallelGC（这两个相互激活）
+  * -XX:+UseParallelOldGC
+* 多 CPU，追求低停顿时间，需要快速响应，如高并发互联网应用
+  * -XX:+UseConcMarkSweepGC（这两个相互激活）
+  * -XX:+ParNewGC
 
 
 
