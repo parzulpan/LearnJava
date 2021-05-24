@@ -2472,6 +2472,9 @@ Serial、Parallel Scavenge（Parallel）、ParNew 适用于回收新生代，Ser
 ![七大垃圾收集器推荐搭配](https://images.cnblogs.com/cnblogs_com/parzulpan/1899738/o_210517091157%E4%B8%83%E5%A4%A7%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E6%8E%A8%E8%8D%90%E6%90%AD%E9%85%8D.png)
 
 ##### Serial 收集器
+```java
+-Xms10m -Xmx10m -XX:+PrintGCDetails -XX:+PrintCommandLineFlags -XX:+UseSerialGC
+```
 
 年代最久远，是 `Client VM` 模式下的默认新生代收集器，采用**复制算法**。
 
@@ -2482,13 +2485,12 @@ Serial、Parallel Scavenge（Parallel）、ParNew 适用于回收新生代，Ser
 
 ![Serial 收集器](https://images.cnblogs.com/cnblogs_com/parzulpan/1899738/o_210517145529Serial%20%E6%94%B6%E9%9B%86%E5%99%A8.jpeg)
 
-```java
--Xms10m -Xmx10m -XX:+PrintGCDetails -XX:+PrintCommandLineFlags -XX:+UseSerialGC
-```
-
 
 
 ##### ParNew 收集器
+```java
+-Xms10m -Xmx10m -XX:+PrintGCDetails -XX:+PrintCommandLineFlags -XX:+UseParNewGC
+```
 
 也就是 `Serial` 的多线程版本，GC 的时候不再是一个线程，而是多个，是 `Server VM` 模式下的默认新生代收集器，采用**复制算法**。
 
@@ -2496,13 +2498,13 @@ Serial、Parallel Scavenge（Parallel）、ParNew 适用于回收新生代，Ser
 
 ![ParNew 收集器](https://images.cnblogs.com/cnblogs_com/parzulpan/1899738/o_210517145558ParNew%20%E6%94%B6%E9%9B%86%E5%99%A8.jpeg)
 
-```ja
--Xms10m -Xmx10m -XX:+PrintGCDetails -XX:+PrintCommandLineFlags -XX:+UseParNewGC
-```
 
 
 
 ##### Parallel Scavenge（Parallel） 收集器
+```java
+-Xms10m -Xmx10m -XX:+PrintGCDetails -XX:+PrintCommandLineFlags -XX:+UseParallelGC
+```
 
 `ParNew`收集器仅在**新生代**使用多线程收集，老年代默认是 `SerialOld`，所以是单线程收集。而 `Parallel Scavenge` 在新、老两代**都采用**多线程收集。`Parallel Scavenge` 还有一个特点就是**吞吐量优先收集器**，可以通过自适应调节，保证最大吞吐量（比如程序运行 100 分钟，垃圾收集时间 1 分钟，吞吐量就是 99%），采用**复制算法**。
 
@@ -2510,13 +2512,13 @@ Serial、Parallel Scavenge（Parallel）、ParNew 适用于回收新生代，Ser
 
 其它参数，比如 `-XX:ParallelGCThreads=N` 可以选择 N 个线程进行GC，`-XX:+UseAdaptiveSizePolicy` 使用自适应调节策略。当 CPU 核数大于 8 时，N = 5/8，否则 N = 实际核数。
 
-```java
--Xms10m -Xmx10m -XX:+PrintGCDetails -XX:+PrintCommandLineFlags -XX:+UseParallelGC
-```
 
 
 
 ##### SerialOld 收集器
+```java
+-Xms10m -Xmx10m -XX:+PrintGCDetails -XX:+PrintCommandLineFlags -XX:+UseParallelOldGC
+```
 
 `Serial`的老年代版本，采用**标准压缩/整理算法**。JDK1.5 之前跟`Parallel Scavenge`配合使用，现在已经不用了，它作为 `CMS` 的后备收集器。
 
@@ -2526,13 +2528,13 @@ Serial、Parallel Scavenge（Parallel）、ParNew 适用于回收新生代，Ser
 
 使用 `-XX:+UseParallelOldGC` 可以显式开启， 开启后默认使用 `Parallel`+`ParallelOld` 的组合。
 
-```java
--Xms10m -Xmx10m -XX:+PrintGCDetails -XX:+PrintCommandLineFlags -XX:+UseParallelOldGC
-```
 
 
 
 ##### CMS 收集器
+```java
+-Xms10m -Xmx10m -XX:+PrintGCDetails -XX:+PrintCommandLineFlags -XX:+UseConcMarkSweepGC
+```
 
 是一种以获得**最短 GC 停顿**为目标的收集器，适用于互联网或者 B/S 系统的服务器上，这类应用尤其重视服务器的**响应速度**，希望停顿时间最短。它是 `G1` 收集器出来之前的首选收集器，采用**标准清除算法**。在 GC 的时候，会与用户线程并发执行，不会停顿用户线程。但是在 **标记** 的时候，仍然会 **STW**。
 
@@ -2552,32 +2554,41 @@ Serial、Parallel Scavenge（Parallel）、ParNew 适用于回收新生代，Ser
 * 优点：停顿时间少，响应速度快，用户体验好
 * 缺点：使用标准清除算法会产生内存碎片；由于需要并发工作，会占用系统线程资源；标记时用户线程也在工作，无法有效处理新产生的垃圾
 
-```java
--Xms10m -Xmx10m -XX:+PrintGCDetails -XX:+PrintCommandLineFlags -XX:+UseConcMarkSweepGC
-```
 
 
 
 ##### G1 收集器
+```java
+-Xms10m -Xmx10m -XX:+PrintGCDetails -XX:+PrintCommandLineFlags -XX:+UseG1GC
+```
 
-之前的收集器都有三个区域（新生代、老年代、元空间），而 G1 收集器只有 G1 区和元空间。其中 G1 区不分为新生、老年代，而是一个一个 **Region**，每个 Region 即可能包含新生代，也可能包含老年代。整体上采用**标准压缩/整理算法**，局部上采用**复制算法**，不会产生内存碎片。
+之前的收集器都有三个区域（新生代、老年代、元空间），而 G1 收集器只有 G1 区和元空间。其中 G1 区不分为新生、老年代，而是一个一个 **区域（Region）**，每个区域既可能包含新生代，也可能包含老年代。整体上采用**标准压缩/整理算法**，局部上采用**复制算法**，不会产生内存碎片。
 
 `G1` 收集器，是一款面向服务端应用的收集器，它既可以提高吞吐量，又可以减少 GC 时间。最重要的是 **STW 可控**，增加了预测机制，可以让用户指定停顿时间。
 
 使用 `-XX:+UseG1GC` 可以显式开启，还有 `-XX:G1HeapRegionSize=n`、`-XX:MaxGCPauseMillis=n` 等参数可指定。
+
+参数说明：
+
+* `-XX:G1HeapRegionSize=n`：设置的 G1 区域的大小。值是 2 的幂，范围是 1MB 到 32MB。目标是根据最小的 Java 堆大小划分出约 2048 个区域。
+* `-XX:MaxGCPauseMillis=n`：最大 GC 停顿时间，这是个软目标，JVM将尽可能（但不保证）停顿小于这个时间。
+* `-XX:InitiatingHeapOccupancyPercent=n`：堆占用了多少的时候就触发 GC，默认为45。
+* `-XX:ConcGCThreads=n`：并发 GC 使用的线程数。
+* `-XX:G1ReservePercent=n`：设置作为空闲空间的预留内存百分比，以降低目标空间溢出的风险，默认值是 10%。
+
+同 CMS 类似，**大致过程**为：
+
+* **初始标记**：只标记 GC Roots 能直接关联到的对象
+* **并发标记**：进行 GC Roots Tracing 的过程
+* **最终标记**：修正并发标记期间，因程序运行导致标记发生变化的那一部分对象
+* **筛选回收**：根据时间来进行价值最大化的回收
 
 **优点**：
 
 * **并行和并发**：充分利用多核 CPU，尽量缩短 STW
 * **分代收集**：虽然还保留着新、老两代的概念，但物理上不再隔离，而是融合在Region中
 * **空间整合**：`G1` 整体上看是**标准整理**算法，但在局部看又是**复制算法**，不会产生内存碎片
-* **可预测停顿**：用户可以指定一个GC停顿时间，`G1` 收集器会尽量满足。
-
-大致过程同 CMS 收集器。
-
-```java
--Xms10m -Xmx10m -XX:+PrintGCDetails -XX:+PrintCommandLineFlags -XX:+UseG1GC
-```
+* **可预测停顿**：用户可以指定一个 GC 停顿时间，`G1` 收集器会尽量满足。
 
 
 
@@ -2592,17 +2603,87 @@ Serial、Parallel Scavenge（Parallel）、ParNew 适用于回收新生代，Ser
   * -XX:+UseConcMarkSweepGC（这两个相互激活）
   * -XX:+ParNewGC
 
+#### 微服务结合 JVM 调优
+
+启动微服务时，同时配置 JVM 调优参数：`java -server VM options -jar jar/war包名`。
+
 
 
 ### 如果生产环境服务器变慢，你有什么诊断思路和性能评估手段？
 
+常用组合命令：
 
+* 查看整体性能：`top`
+  * 查看 `%CPU` 和 `%MEM` 数值
+  * 查看 `load average` 数值，它表示系统负载，即任务队列的平均长度。 三个数值分别为 1 分钟、5 分钟、15 分钟前到现在的平均值。如果 **三个值之和/3 * 100 % > 60 %**，说明系统在超负荷运转
+  * 整体性能精简版命令 `uptime`
+* 查看 CPU：`vmstat -n n1 n2`
+  * n1 参数代表采样的时间间隔（单位为秒），n2 参数代表采样的次数
+  * 输出结果的 **procs 项**说明
+    * r：运行和等待的 CPU 时间片的进程数，原则上 1 核的 CPU 的运行队列不要超过 2，整个系统的运行队列不超过总核数的 2 倍，否则代表系统压力过大
+    * b：等待资源的进程数，比如正在等待磁盘 I/O、网络 I/O等
+  * 输出结果的 **cpu 项**说明
+    * us：**用户进程**消耗 CPU 时间百分比，us 值越高，则用户进程消耗 CPU 时间越多，如果长期大于 50%，则需要优化程序
+    * sy：**内核进程**消耗的 CPU 时间百分比
+    * us + sy 参考值为 **80%**，如果 us + sy 大于80%，说明可能存在 CPU 不足
+    * id：处于空闲的 CPU 时间百分比
+    * wa：系统等待 IO 的 CPU 时间百分比
+    * st：来自于一个虚拟机偷取的 CPU 时间百分比
+* 查看 CPU：`mpstat -P ALL n1` 
+  * 查看所有 cpu 核信息，n1 参数代表采样的时间间隔（单位为秒）
+* 查看 CPU：`pidstat -r n1 -p 进程编号` 
+  * 每个进程使用 cpu 的用量信息，先用 `ps -ef | grep java` 查出相关进程，n1 参数代表采样的时间间隔（单位为秒）
+* 查看内存：`free -m`
+  * 应用程序可用内存 / 系统物理内存 > 70%，则内存充足
+  * 应用程序可用内存 / 系统物理内存 < 20%，则内存不足，需要增加内存
+  * 20% < 应用程序可用内存/系统物理内存 < 70%，则内存基本够用
+* 查看磁盘：`df -h`
+  * 查看磁盘剩余空间数
+* 查看磁盘 IO：`iostat -xdk n1 n2`
+  * 输出结果的 rkB/s 项：每秒读取数据量 kB
+  * 输出结果的 wkB/s 项：每秒写入数据量kB;
+  * rkB/s、wkB/s 根据系统应用不同会有不同的值，但有规律遵循，长期、超大数据读写，肯定不正常，需要优化程序读取
+  * 输出结果的 svctm 项：lO 请求的平均服务时间，单位毫秒;
+  * 输出结果的 await 项：l/O 请求的平均等待时间，单位毫秒；值越小，性能越好;
+  * 输出结果的 svctm 的值与 await 的值很接近，表示几乎没有 IO 等待，磁盘性能好。
+  * 如果 await 的值远高于 svctm 的值，则表示 IO 队列等待太长，需要优化程序或更换更快磁盘。
+  * 输出结果的 **util** 项：一秒中有百分几的时间用于 I/O 操作。接近 100% 时，表示磁盘带宽跑满，需要优化程序或者增加磁盘;
+* 查看网络 IO：`ifstat`
 
 
 
 ### 如果生产环境 CPU 占用过高，谈谈你的分析思路和定位？
 
-先用 top 找到 CPU 占用最高的进程，然后使用 ps -mp pid -o THREAD,tid,time，得到该进程里面占用最高的线程。这个线程是10进制的，将其转换成 16 进制，然后 jstack pid | grep tid 可以定位到具体哪一行导致了占用过高。
+先用 top 找到 CPU 占用最高的进程 pid，然后使用 ps -mp pid -o THREAD,tid,time，得到该进程里面占用最高的线程。这个线程是 10 进制的，将其转换成 16 进制，然后 jstack pid | grep tid 可以定位到具体哪一行导致了占用过高。
+
+```shell
+> top
+PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND                           14825 root      10 -10  146292  25420   6408 S   1.0  1.4  64:47.30 AliYunDun
+
+# ps 代表 process status 进程状态
+# -A 显示有关其他用户进程的信息，包括那些没有控制终端的进程的信息
+# -e 与 -A 相同
+# -f 显示 uid，pid，父 pid，最近的 CPU 使用率，进程开始时间，控制 tty，已用的 CPU 使用率以及关联的命令
+> ps -ef | grep 14825
+root     14825     1  1 May22 ?        01:04:49 /usr/local/aegis/aegis_client/aegis_10_95/AliYunDun
+root     18852 10331  0 00:07 pts/0    00:00:00 grep --color=auto 14825
+
+# -m 显示所有的线程
+# -p pid 进程使用 cpu 的时间
+# -o 该参数后是用户自定义格式
+> ps -mp 14825 -o THREAD,tid,time
+USER     %CPU PRI SCNT WCHAN  USER SYSTEM   TID     TIME
+root      1.5   -    - -         -      -     - 01:04:51
+root      0.0  29    - hrtime    -      - 14825 00:03:31
+
+> printf "%x\n" 14825
+39e9
+
+> jstack 14825 | grep 39e9
+
+```
+
+
 
 
 
@@ -2614,7 +2695,7 @@ Java版的 `ps -ef` 查看所有 JVM 进程。
 
 #### jstack
 
-查看 JVM 中运行线程的状态，比较重要。可以定位 CPU 占用过高位置，定位死锁位置。
+Java 堆栈跟踪工具，查看 JVM 中运行线程的状态，比较重要。可以定位 CPU 占用过高位置，定位死锁位置。
 
 #### jinfo/jstat
 
@@ -2633,26 +2714,6 @@ JVM 内存映像工具。
 
 
 ## Linux
-
-### 系统信息查看
-
-查看整体性能：
-
-
-
-查看 CPU：
-
-
-
-查看内存：
-
-
-
-查看硬盘：
-
-
-
-查看网络：
 
 
 
