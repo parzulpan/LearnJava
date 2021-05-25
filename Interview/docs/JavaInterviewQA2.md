@@ -2,6 +2,100 @@
 
 ## Java 基础
 
+### 谈谈对 String 对象的 intern() 函数的理解？
+
+当 intern() 方法被调用时：
+
+* 如果字符串常量池中已经包含了此字符串（equals 判断），那么返回常量池中这个字符串对象的引用
+* 否则，该字符串将被添加至字符串常量池中，并且返回该字符串在常量池中的引用
+
+```java
+package java_two;
+
+/**
+ * @author parzulpan
+ *
+ * 字符串常量池、intern() 方法
+ */
+
+public class StringPoolDemo {
+    public static void main(String[] args) {
+        String s1 = new StringBuilder("parzul").append("pan").toString();
+        System.out.println(s1);
+        System.out.println(s1.intern());
+        // true
+        System.out.println(s1 == s1.intern());
+        // true
+        System.out.println(s1.equals(s1.intern()));
+
+        System.out.println();
+
+        String s2 = new StringBuilder("ja").append("va").toString();
+        System.out.println(s2);
+        System.out.println(s2.intern());
+        // false
+        System.out.println(s2 == s2.intern());
+        // true
+        System.out.println(s2.equals(s2.intern()));
+    }
+}
+```
+
+为什么 "java" 字符串就返回 false 呢？
+
+这是因为是两个不同的 "java"，另外一个 "java" 在 根加载器加载 `sun.misc.Version` 类时就添加到常量池了。
+
+
+
+### 两数求和最高效的解放
+
+[题目描述](https://leetcode-cn.com/problems/two-sum/)
+
+利用 HashMap 判断，并且边遍历边判断。
+
+```java
+package java_two;
+
+import java.util.Arrays;
+import java.util.HashMap;
+
+/**
+ * @author parzulpan
+ *
+ * 两数求和最高效的解放
+ */
+
+public class TwoSum {
+    public static void main(String[] args) {
+        int[] arr = {2, 7, 11, 15};
+        int target = 9;
+        System.out.println(Arrays.toString(new TwoSum().twoSum(arr, target)));
+    }
+
+    HashMap<Integer, Integer> valueToIndex = new HashMap<>();
+
+    public int[] twoSum(int[] arr, int target) {
+        for (int i = 0; i < arr.length; i++) {
+            int temp = target - arr[i];
+            // 如果存在则返回结果，不存在则加入 map
+            if (valueToIndex.containsKey(temp)) {
+                return new int[]{valueToIndex.get(temp), i};
+            }
+            valueToIndex.put(arr[i], i);
+        }
+        return null;
+    }
+}
+```
+
+
+
+
+
+### 谈谈对 LRU、LRF  算法的理解
+
+
+
 
 
 ## JUC
@@ -175,7 +269,7 @@ class MyData2 {
 
 **有序性**指程序执行的顺序按照代码的先后顺序执行。
 
-如果在本线程内观察，所有操作都是有序的；如果在一个线程中观察另一个线程，所有操作都是无序的。前半句是指“线程内表现为串行语义”，后半句是指“指令重排序”现象和“工作内存主主内存同步延迟”现象。
+如果在本线程内观察，所有操作都是有序的；如果在一个线程中观察另一个线程，所有操作都是无序的。前半句是指“线程内表现为串行语义”，后半句是指“指令重排序”现象和“工作内存与主内存同步延迟”现象。
 
 重排序是指编译器和处理器为了优化程序性能而对指令序列进行排序的一种手段。重排序需要遵守一定规则：
 
@@ -250,6 +344,8 @@ package java_two;
 
 public class VolatileDCL {
     private static volatile VolatileDCL instance;
+    
+    private VolatileDCL() {}
 
     public static VolatileDCL getInstance() {
         if (instance == null) {
@@ -408,7 +504,7 @@ CAS 实际上是一种自旋锁，有如下缺点：
 
 #### 原子引用
 
-`AtomicInteger` s是对整数进行原子操作，如果是一个 实体类 呢？可以用`AtomicReference`来包装这个实体类，使其操作原子化。
+`AtomicInteger` 是对整数进行原子操作，如果是一个 实体类 呢？可以用`AtomicReference`来包装这个实体类，使其操作原子化。
 
 ```java
 package java_two;
@@ -1802,6 +1898,16 @@ Found 1 deadlock.
 
 
 
+#### 谈谈对 LockSupport 的理解
+
+
+
+#### 谈谈对 AQS 的理解
+
+
+
+
+
 ## JVM
 
 ### 谈谈对 JVM 体系结构 的理解？GC 的作用区域是什么？
@@ -2691,21 +2797,97 @@ root      0.0  29    - hrtime    -      - 14825 00:03:31
 
 #### jps
 
-Java版的 `ps -ef` 查看所有 JVM 进程。
+JVM Process Status Tool，显示指定系统内所有的 HotSpot 虚拟机进程。Java 版的 `ps -ef` 查看所有 JVM 进程。
+
+格式：`jps [ option ] [ hostid ]`
+
+示例：`jps -l -v`
+
+主要选项：
+
+* `-q` 只输出 LVMID/PID，省略主类的名称
+* `-m` 输出虚拟机进程启动时传递给主类 `main()` 函数的参数
+* `-l` 输出主类的全名，如果进程执行的是 Jar 包，输出 Jar 路径
+* `-v` 输出虚拟机进程启动时的 JVM 参数
+
+#### jstat
+
+JVM Statistics Monitoring Tool，用于收集 HotSpot 虚拟机各方面的运行数据，它是统计信息监视工具。
+
+格式：`jstat [ option vmid [ interval [ s | ms ] [ count ] ]  ]`
+
+示例：`jstat -gc 2739 2000 3`
+
+主要选项：
+
+* `-class` 监视类装载、卸载数量、总空间以及类装载所耗费的时间
+* `-gc` 监视 Java 堆状况，包括两个 Survivor 区、Eden 区、老年代、元空间等的容量、已用空间、MinorGC 次数和耗时、FullGC 次数和耗时、总GC 时间合计等信息
+* `-gccapacity` 监视内容与 `-gc` 基本相同，但输出主要关注 Java 堆各个区域使用到的最大、最小空间
+* `-gcutil` 监视内容与 `-gc` 基本相同，但输出主要关注已使用空间占总空间的**百分比**
+* `-gccause` 监视内容与 `-gcutil` 基本相同，但是会额外输出导致上一次 GC 产生的原因
+* `-gcnew`
+* `-gcnewcapacity`
+* `-gcold`
+* `-gcoldcapacity`
+* `-compiler` 输出 JIT 编译器编译过的方法、耗时等信息
+* `-printcompilation` 输出已经被 JIT 编译的方法
 
 #### jstack
 
-Java 堆栈跟踪工具，查看 JVM 中运行线程的状态，比较重要。可以定位 CPU 占用过高位置，定位死锁位置。
+Stack Trace for Java，显示虚拟机的线程快照。Java 堆栈跟踪工具，查看 JVM 中运行线程的状态，比较重要。可以定位 CPU 占用过高位置，定位死锁位置。
 
-#### jinfo/jstat
+格式：`jstack [option] vmid`
 
-`jinfo` 查看 JVM 的运行环境参数，比如默认的 JVM 参数等。`jstat` 是统计信息监视工具。
+示例：`jstack -l -m -F 2739`
+
+主要选项：
+
+* `-l` 除堆栈外，显示关于锁的附加信息
+* `-m` 如果调用到本地方法的话，可以显示 C/C++ 的堆栈
+* `-F` 当正常输出的请求不被响应时，强制输出线程堆栈
+
+#### jinfo
+
+Configuration Info for Java，显示虚拟机配置信息。查看 JVM 的运行环境参数，比如默认的 JVM 参数等。
+
+格式：` jinfo [ option ] pid`
+
+示例：`jinfo -flags 2739`
 
 #### jmap
 
-JVM 内存映像工具。
+Memory Map for Java，生成虚拟机的内存转储快照（heapdump），它是 JVM 内存映像工具。
 
+格式：`jmap [ option ] vmid`
 
+示例：`jmap -dump:format=b,file=jmaptest.dump -F 2739`
+
+主要选项：
+
+* -dump 生成Java堆转储快照。格式为：-dump:[ live, ] format=b, file=, 其中live子参数说明是否只 dump 出存活的对象
+* -finalizerinfo 显示在 F-Queue 中等待 Finalizer 线程执行 finalize 方法的对象，只在 Linux/Solaris 平台下有效
+* -heap 显示 Java 堆详细信息，如使用哪种回收器、参数配置、分代状况等，只在 Linux/Solaris 平台下有效
+* -histo 显示堆中对象统计信息，包括类、实例数量、合计容量
+* -permstat 以 ClassLoader 为统计口径显示永久代内存状态，只在 Linux/Solaris 平台下有效
+* -F 当虚拟机进程对 -dump 选项没有响应时，可使用这个选项强制生成 dump 快照，只在Linux/Solaris平台下有效
+
+#### jhat
+
+JVM Heap Analysis Tool，用于分析 heapdump 文件，它会建立一个 HTTP/HTML 服务器，让用户可以在浏览器上查看分析结果。在实际工作中，用它比较少。因为分析工作比较消耗服务器资源并且该功能相对简陋，推荐使用 VisualVM 或者 其他专业工具。
+
+格式：`jhat jmap_file`
+
+示例：`jhat jmaptest.dump`
+
+#### JConsole
+
+JConsole ( Java Monitoring and Management Console ) 是—种基于 **JMX** 的可视化监视管理工具。它管理部分的功能是针对 JMX MBean 进行管理，MBean可以使用代码、中间件服务器的管理控制台或者所有符合 JMX 规范的软件进行访问。可以进行内存监控、线程监控等。
+
+#### JVisualVM
+
+VisualVM(All-in-One Java Troubleshooting Tool) 是到目前为止随 JDK 发布的功能最强大的运行监视和故障处理程序，并且可以预见在未来一段时间内都是官方主力发展的虚拟机故障处理工具。
+
+官方在 VisualVM 的软件说明中写上了 “All-in-One” 的描述字样，预示着它除了运行监视、故障处理外，还提供了很多其他方面的功能。
 
 
 
