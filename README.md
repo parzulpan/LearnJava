@@ -6,7 +6,7 @@
 
 ![backend](resources/backend.png)
 
-[思维导图源文件](resources/_backend.xmind)
+[思维导图源文件](resources/backend.xmind)
 
 
 

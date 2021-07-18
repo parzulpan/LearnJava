@@ -2,5 +2,6 @@ out
 lib
 .DS_Store
 private_assets
+assets
 .idea
 .vscode
