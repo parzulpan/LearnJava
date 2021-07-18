@@ -1,83 +1,20 @@
-<h1 align="center">JavaEngineer</h1>
+<h1 align="center">📝　backend</h1>
 
-> Java 工程师需要的相关知识，也是一份学习总结笔记，欢迎交流指正。持续更新中...
+> 后端开发全记录，持续更新中...
 
-[项目文章-博客园](https://www.cnblogs.com/parzulpan/p/14129822.html)
+## 思维导图
 
-## 目录
+![backend](resources/backend.png)
 
-* Java 基础
-  * [语言基础](Basis/JavaBasis/README.md)
-  * Linux 基础
-  * [MySQL 基础](Basis/MySQL/README.md)
-  * Oracle 基础
-  * [JDBC 核心](Basis/JDBC/README.md)
-  * JUC 核心
-  * NIO 核心
-  * JVM 深入
-  * 数据结构和算法
-  * Java 设计模式
-  * Java 新特性
-* Java Web
-  * [HTML&CSS 基础](Web/note/HTML&CSS.md)
-  * [JavaScript 基础](Web/note/JavaScript.md)
-    * [现代 JavaScript 教程](Web/note/js_model_tutorial.md)
-  * [jQuery 基础](Web/note/jQuery.md)
-  * [XML 文件](Web/note/XML.md)
-  * [Tomcat 使用](Web/note/Tomcat.md)
-  * [Servlet 程序](Web/note/Servlet.md)
-  * [JSP 页面](Web/note/JSP.md)
-  * [EL 表达式](Web/note/EL.md)
-  * [JSTL 标签库](Web/note/JSTL.md)
-  * [Cookie 技术 & Session 会话](Web/note/Cookie&Session.md)
-  * [Filter 过滤器](Web/note/Filter.md)
-  * [JSON 文件](Web/note/JSON.md)
-  * [AJAX 请求](Web/note/AJAX.md)
-  * [i18n 国际化](Web/note/i18n.md)
-  * [书城网站](Web/note/Book.md)
-* Java 框架
-  * Mybatis
-  * Mybatis Plus
-  * Spring
-  * Spring MVC
-  * Spring Boot
-  * Spring Cloud
-  * Spring Cloud Alibaba
-  * Spring Data
-  * Spring Security
-  * Spring Session
-* Java 高级
-  * Docker
-  * Kubernetes
-  * Kubesphere
-  * Nginx
-  * Jenkins
-  * Redis
-  * ActiveMQ
-  * RabbitMQ
-  * MySQL 高级
-  * Sharding Sphere
-  * Mycat
-  * Dubbo
-  * Netty
-  * Zookeeper
-  * Kafka
-* 项目实战
-  * [购物商城项目](https://github.com/parzulpan/shopping)
-  * [在线视频项目](https://github.com/parzulpan/reallive)
-* 面试总结
-  * [高频技术面试一](Interview/docs/JavaInterviewQA1.md)
-  * [高频技术面试二](Interview/docs/JavaInterviewQA2.md)
-  * [高频技术面试三](Interview/docs/JavaInterviewQA3.md)
-  * 非技术面试
-* 生产工具
-  * Maven
-  * Idea
-  * VSCode
-  * Git
-  * Linux
-  * Shell
-* 开发者资源
+[思维导图源文件](resources/_backend.xmind)
+
+
+
+## 项目文章
+
+[后端开发全记录 持续更新 - 博客园](https://www.cnblogs.com/parzulpan/p/14129822.html)
+
+
 
 ## 参考
 
@@ -104,6 +41,8 @@
 ### 文档
 
 * [Spring 全家桶](https://spring.io/projects/spring-boot)
+
+
 
 ## 协议
 
